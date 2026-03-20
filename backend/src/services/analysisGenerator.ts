@@ -72,12 +72,17 @@ ${cardLines}
 
 ${s.homeTeam} stats:
   Possession: ${s.homeStats.possession ?? 'N/A'}% | Shots on target / total: ${s.homeStats.shotsOnTarget ?? 'N/A'} / ${s.homeStats.totalShots ?? 'N/A'}
-  xG: ${s.homeStats.xG ?? 'N/A'} | Corners: ${s.homeStats.corners ?? 'N/A'} | Pass accuracy: ${s.homeStats.passAccuracy ?? 'N/A'}%
+  xG: ${s.homeStats.xG ?? 'N/A'} (actual goals vs xG delta: ${s.xGDelta.home ?? 'N/A'})
+  Corners: ${s.homeStats.corners ?? 'N/A'} | Fouls: ${s.homeStats.fouls ?? 'N/A'} | Pass accuracy: ${s.homeStats.passAccuracy ?? 'N/A'}%
+  Goalkeeper saves: ${s.homeStats.goalkeeperSaves ?? 'N/A'}
 
 ${s.awayTeam} stats:
   Possession: ${s.awayStats.possession ?? 'N/A'}% | Shots on target / total: ${s.awayStats.shotsOnTarget ?? 'N/A'} / ${s.awayStats.totalShots ?? 'N/A'}
-  xG: ${s.awayStats.xG ?? 'N/A'} | Corners: ${s.awayStats.corners ?? 'N/A'} | Pass accuracy: ${s.awayStats.passAccuracy ?? 'N/A'}%
+  xG: ${s.awayStats.xG ?? 'N/A'} (actual goals vs xG delta: ${s.xGDelta.away ?? 'N/A'})
+  Corners: ${s.awayStats.corners ?? 'N/A'} | Fouls: ${s.awayStats.fouls ?? 'N/A'} | Pass accuracy: ${s.awayStats.passAccuracy ?? 'N/A'}%
+  Goalkeeper saves: ${s.awayStats.goalkeeperSaves ?? 'N/A'}
 
 Second half goals — ${s.homeTeam}: ${s.secondHalfGoals.home}, ${s.awayTeam}: ${s.secondHalfGoals.away}
-Late goals (80'+): ${lateGoalSummary}`;
+Late goals (80'+): ${lateGoalSummary}
+Comeback win: ${s.wasComeback ? 'Yes — team was losing at half-time but won' : 'No'}`;
 }

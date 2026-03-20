@@ -26,6 +26,7 @@ export interface TeamStats {
   fouls: number | null;
   xG: number | null;
   passAccuracy: number | null;
+  goalkeeperSaves: number | null;
 }
 
 export interface MatchSignals {
@@ -48,6 +49,8 @@ export interface MatchSignals {
   // Derived
   secondHalfGoals: { home: number; away: number };
   lateGoals: GoalEvent[]; // 80'+
+  wasComeback: boolean;
+  xGDelta: { home: number | null; away: number | null };
 }
 
 // ── Preprocessor ─────────────────────────────────────────────────────────────
@@ -82,6 +85,8 @@ export function preprocess(raw: ApiFixtureDetail): MatchSignals {
     awayStats: extractTeamStats(raw, raw.teams.away.id),
     secondHalfGoals: deriveSecondHalfGoals(goals),
     lateGoals: goals.filter((g) => g.minute >= 80),
+    wasComeback: deriveWasComeback(raw, fulltimeHome, fulltimeAway),
+    xGDelta: deriveXGDelta(raw, homeId),
   };
 }
 
@@ -126,6 +131,7 @@ function extractTeamStats(raw: ApiFixtureDetail, teamId: number): TeamStats {
     fouls: asNumber(get('Fouls')),
     xG: parseFloat_(get('expected_goals')),
     passAccuracy: parsePercent(get('Passes %')),
+    goalkeeperSaves: asNumber(get('Goalkeeper Saves')),
   };
 }
 
@@ -135,6 +141,32 @@ function deriveResult(home: number, away: number): MatchSignals['result'] {
   if (home > away) return 'home_win';
   if (away > home) return 'away_win';
   return 'draw';
+}
+
+function deriveWasComeback(raw: ApiFixtureDetail, ftHome: number, ftAway: number): boolean {
+  const htHome = raw.score.halftime.home ?? 0;
+  const htAway = raw.score.halftime.away ?? 0;
+  const htLoser = htHome < htAway ? 'home' : htAway < htHome ? 'away' : null;
+  if (!htLoser) return false;
+  return htLoser === 'home' ? ftHome > ftAway : ftAway > ftHome;
+}
+
+function deriveXGDelta(raw: ApiFixtureDetail, homeId: number): { home: number | null; away: number | null } {
+  const getXG = (teamId: number): number | null => {
+    const entry = raw.statistics.find((s) => s.team.id === teamId);
+    const val = entry?.statistics.find((s) => s.type === 'expected_goals')?.value ?? null;
+    return val !== null ? parseFloat(String(val)) || null : null;
+  };
+
+  const homeXG = getXG(homeId);
+  const awayXG = getXG(raw.teams.away.id);
+  const ftHome = raw.score.fulltime.home ?? 0;
+  const ftAway = raw.score.fulltime.away ?? 0;
+
+  return {
+    home: homeXG !== null ? Math.round((ftHome - homeXG) * 100) / 100 : null,
+    away: awayXG !== null ? Math.round((ftAway - awayXG) * 100) / 100 : null,
+  };
 }
 
 function deriveSecondHalfGoals(goals: GoalEvent[]): { home: number; away: number } {
@@ -186,5 +218,6 @@ function emptyStats(): TeamStats {
     fouls: null,
     xG: null,
     passAccuracy: null,
+    goalkeeperSaves: null,
   };
 }
