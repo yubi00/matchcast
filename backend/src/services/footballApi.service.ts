@@ -17,6 +17,38 @@ export interface Match {
   status: string;
 }
 
+export interface ApiFixtureDetail {
+  fixture: {
+    id: number;
+    referee: string | null;
+    date: string;
+    venue: { name: string; city: string };
+    status: { long: string; short: string; elapsed: number };
+  };
+  league: { round: string };
+  teams: {
+    home: { id: number; name: string };
+    away: { id: number; name: string };
+  };
+  score: {
+    halftime: { home: number | null; away: number | null };
+    fulltime: { home: number | null; away: number | null };
+  };
+  events: Array<{
+    time: { elapsed: number; extra: number | null };
+    team: { id: number; name: string };
+    player: { id: number | null; name: string | null };
+    assist: { id: number | null; name: string | null };
+    type: string;
+    detail: string;
+    comments: string | null;
+  }>;
+  statistics: Array<{
+    team: { id: number; name: string };
+    statistics: Array<{ type: string; value: number | string | null }>;
+  }>;
+}
+
 // ── Service ─────────────────────────────────────────────────────────────────
 
 export async function fetchMatches(): Promise<Match[]> {
@@ -37,6 +69,32 @@ export async function fetchMatches(): Promise<Match[]> {
   }
 
   return data.response.map(mapFixture);
+}
+
+export async function fetchFixtureDetail(fixtureId: number): Promise<ApiFixtureDetail> {
+  const url = `${config.apiFootballBaseUrl}/fixtures?id=${fixtureId}`;
+
+  const response = await fetch(url, {
+    headers: { 'x-apisports-key': config.apiFootballKey },
+  });
+
+  if (!response.ok) {
+    throw new ExternalApiError(`API-Football responded with ${response.status}`);
+  }
+
+  const data = (await response.json()) as ApiFixtureDetailResponse;
+
+  if (data.errors && Object.keys(data.errors).length > 0) {
+    throw new ExternalApiError(`API-Football error: ${JSON.stringify(data.errors)}`);
+  }
+
+  const detail = data.response[0];
+
+  if (!detail) {
+    throw new ExternalApiError(`Fixture ${fixtureId} not found`);
+  }
+
+  return detail;
 }
 
 // ── Mapping ──────────────────────────────────────────────────────────────────
@@ -80,4 +138,9 @@ interface ApiFixture {
     halftime: { home: number | null; away: number | null };
     fulltime: { home: number | null; away: number | null };
   };
+}
+
+interface ApiFixtureDetailResponse {
+  errors: Record<string, string> | unknown[];
+  response: ApiFixtureDetail[];
 }

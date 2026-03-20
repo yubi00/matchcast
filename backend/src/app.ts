@@ -4,6 +4,7 @@ import pinoHttp from 'pino-http';
 import logger from './utils/logger';
 import { errorMiddleware } from './middleware/errorMiddleware';
 import matchesRouter from './routes/matches.router';
+import analysisRouter from './routes/analysis.router';
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 app.use('/api/matches', matchesRouter);
+app.use('/api/analysis', analysisRouter);
 
 app.use(errorMiddleware);
 
