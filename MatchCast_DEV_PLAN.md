@@ -28,13 +28,14 @@
 - [x] Install `zod`
 - [x] Create `validation/schemas.ts` — `MatchesQuerySchema` and `AnalysisParamsSchema` with inferred types
 - [x] Create `middleware/validationMiddleware.ts` — `validateRequest(schema, source)` middleware
-- [ ] Apply validation middleware to routes (done when routes are built in §1.3+)
+- [x] Apply validation middleware to routes (done when routes are built in §1.3+)
 
 ### 1.3 Football API Integration
-- [ ] Register for football-data.org API key (free tier)
-- [ ] Implement `footballApi.ts` — fetch finished matches
-- [ ] Implement `GET /matches` — return recent completed matches
-- [ ] Handle API errors and rate limiting (free tier: 10 req/min)
+- [x] Register for api-sports.io API key (free tier — 100 req/day, 10 req/min)
+- [x] Implement `services/footballApi.service.ts` — fetch finished EPL matches (season 2024, status=FT)
+- [x] Implement `routes/matches.router.ts` + `controllers/matches.controller.ts`
+- [x] Implement `GET /api/matches` — returns matches sorted by date desc, supports `?limit=` query param
+- [x] Handle API errors (`ExternalApiError` on non-2xx or error body)
 
 ### 1.4 Data Preprocessor
 - [ ] Implement `preprocessor.ts` — raw match data → structured signals

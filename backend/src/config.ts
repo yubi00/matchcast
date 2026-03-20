@@ -9,9 +9,9 @@ function requireEnv(key: string): string {
 const config = {
   port: parseInt(process.env['PORT'] ?? '3000'),
   nodeEnv: process.env['NODE_ENV'] ?? 'development',
-  footballApiKey: requireEnv('FOOTBALL_API_KEY'),
-  footballApiBaseUrl: requireEnv('FOOTBALL_API_BASE_URL'),
   openAiApiKey: requireEnv('OPENAI_API_KEY'),
+  apiFootballKey: requireEnv('API_FOOTBALL_KEY'),
+  apiFootballBaseUrl: requireEnv('API_FOOTBALL_BASE_URL'),
 } as const;
 
 export default config;
