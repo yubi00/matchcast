@@ -6,9 +6,9 @@
 
 > **Goal:** `matchId → fetch stats → preprocess → LLM → return text`
 
-### 1.0 Repo & Environment Bootstrap
-- [ ] Initialize Git repository, add `.gitignore` (node_modules, .env, dist)
-- [ ] Create `.env.example` documenting all required env vars (no secrets committed)
+### 1.0 Repo & Environment Bootstrap ✅
+- [x] Initialize Git repository, add `.gitignore` (node_modules, .env, dist)
+- [x] Create `.env.example` documenting all required env vars (no secrets committed)
 - [ ] Create monorepo root with `backend/` and `frontend/` directories
 
 ### 1.1 Backend Setup

@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    // Input / output
+    "rootDir": "src",
+    "outDir": "dist",
+
+    // Target Node.js with CommonJS modules
+    "target": "es2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+
+    // Strict type safety — noImplicitAny is included via strict
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // Module interop
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+
+    // Debug
+    "sourceMap": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}
