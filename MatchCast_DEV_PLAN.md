@@ -37,20 +37,20 @@
 - [x] Implement `GET /api/matches` — returns matches sorted by date desc, supports `?limit=` query param
 - [x] Handle API errors (`ExternalApiError` on non-2xx or error body)
 
-### 1.4 Data Preprocessor
-- [ ] Implement `preprocessor.ts` — raw match data → structured signals
-- [ ] Extract: possession split, shot efficiency, key events
-- [ ] Extract: xG delta (if available), corners, fouls
-- [ ] Calculate derived signals: dominance vs efficiency contrast
-- [ ] Unit test preprocessor with sample match data
+### 1.4 Data Preprocessor ✅
+- [x] Implement `services/preprocessor.ts` — raw match data → structured signals
+- [x] Extract: possession, shot efficiency, xG, corners, fouls, pass accuracy
+- [x] Extract: goals (scorer, assist, type, minute), cards (player, type, minute)
+- [x] Calculate derived signals: result, secondHalfGoals, lateGoals (80'+)
+- [x] Verified output against real fixture (Man Utd vs Fulham, fixture 1208021)
 
-### 1.5 Analysis Generation (Text Only)
-- [ ] Implement `analysisGenerator.ts`
-- [ ] Build system prompt (pundit persona, reasoning rules, format constraints)
-- [ ] Build user prompt template with preprocessed signals
-- [ ] Call Anthropic Messages API (Haiku 4.5)
-- [ ] Implement `GET /analysis/:matchId` — return text response
-- [ ] Test with 3–5 different real matches, iterate on prompt
+### 1.5 Analysis Generation (Text Only) ✅
+- [x] Implement `services/analysisGenerator.ts`
+- [x] Build system prompt (pundit persona, Sky Sports tone, prose only)
+- [x] Build user prompt template with preprocessed signals
+- [x] Call OpenAI Chat Completions API (gpt-4o — better stat coverage than gpt-4o-mini)
+- [x] Update `GET /api/analysis/:matchId` — returns fixtureId, teams, score, analysis text
+- [x] Tested on real fixture — output quality verified
 
 ### 1.6 Frontend Setup
 - [ ] Create React + TypeScript app with Vite (`frontend/`)
