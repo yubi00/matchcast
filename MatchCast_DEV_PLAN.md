@@ -20,20 +20,15 @@
 - [x] Attach `pino-http` middleware to Express for automatic request/response logging
 
 ### 1.1a Error Middleware
-- [ ] Create `src/errors/AppError.ts` — base error class (`statusCode`, `message`)
-- [ ] Add subclasses: `ValidationError` (400), `NotFoundError` (404), `ExternalApiError` (502)
-- [ ] Update global error handler in `app.ts` to switch on error type
+- [x] Create `src/errors/AppError.ts` — base error class (`statusCode`, `message`)
+- [x] Add subclasses: `ValidationError` (400), `NotFoundError` (404), `ExternalApiError` (502)
+- [x] Update global error handler in `app.ts` to switch on error type
 
-### 1.2 Input Validation Layer (Zod)
-- [ ] Install `zod` (`npm install zod`)
-- [ ] Create `validation/schemas.ts` — define Zod schemas for all route inputs:
-  - `MatchesQuerySchema` — `limit`, `competition`, `dateFrom`, `dateTo`
-  - `AnalysisParamsSchema` — `matchId` (numeric string, max 20 chars)
-- [ ] Create `validation/middleware.ts` — generic `validateRequest(schema, source)` middleware
-  - Calls `schema.safeParse(req[source])`
-  - Returns `400` with `{ error, details: result.error.flatten() }` on failure
-  - Replaces `req[source]` with parsed/coerced values on success
-- [ ] Apply validation middleware to both routes before handler logic
+### 1.2 Input Validation Layer (Zod) ✅
+- [x] Install `zod`
+- [x] Create `validation/schemas.ts` — `MatchesQuerySchema` and `AnalysisParamsSchema` with inferred types
+- [x] Create `middleware/validationMiddleware.ts` — `validateRequest(schema, source)` middleware
+- [ ] Apply validation middleware to routes (done when routes are built in §1.3+)
 
 ### 1.3 Football API Integration
 - [ ] Register for football-data.org API key (free tier)
