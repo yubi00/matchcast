@@ -1,7 +1,8 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import pinoHttp from 'pino-http';
 import logger from './utils/logger';
+import { errorMiddleware } from './middleware/errorMiddleware';
 
 const app = express();
 
@@ -13,10 +14,6 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok' });
 });
 
-// Global error handler
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  logger.error({ err }, 'Unhandled error');
-  res.status(500).json({ error: 'Internal server error' });
-});
+app.use(errorMiddleware);
 
 export default app;

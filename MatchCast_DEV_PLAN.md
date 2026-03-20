@@ -11,14 +11,18 @@
 - [x] Create `.env.example` documenting all required env vars (no secrets committed)
 - [ ] Create monorepo root with `backend/` and `frontend/` directories
 
-### 1.1 Backend Setup
-- [ ] Initialize Node.js + TypeScript project (`backend/`)
-- [ ] Setup Express server with CORS
-- [ ] Create folder structure per PRD §6
-- [ ] Setup environment variables (API keys for football API, Anthropic)
-- [ ] Add basic error handling middleware
-- [ ] Install `pino` + `pino-http` and initialise shared logger in `utils/logger.ts`
-- [ ] Attach `pino-http` middleware to Express for automatic request/response logging
+### 1.1 Backend Setup ✅
+- [x] Initialize Node.js + TypeScript project (`backend/`)
+- [x] Setup Express server with CORS
+- [x] Create folder structure per PRD §6
+- [x] Setup environment variables — central `config.ts` with fail-fast on missing vars
+- [x] Install `pino` + `pino-http` and initialise shared logger in `utils/logger.ts`
+- [x] Attach `pino-http` middleware to Express for automatic request/response logging
+
+### 1.1a Error Middleware
+- [ ] Create `src/errors/AppError.ts` — base error class (`statusCode`, `message`)
+- [ ] Add subclasses: `ValidationError` (400), `NotFoundError` (404), `ExternalApiError` (502)
+- [ ] Update global error handler in `app.ts` to switch on error type
 
 ### 1.2 Input Validation Layer (Zod)
 - [ ] Install `zod` (`npm install zod`)
