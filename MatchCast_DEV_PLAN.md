@@ -53,7 +53,7 @@
 - [x] Tested on real fixture — output quality verified
 
 ### 1.6 Frontend Setup
-- [ ] Create React + TypeScript app with Vite (`frontend/`)
+- [x] Create React + TypeScript app with Vite (`frontend/`)
 - [ ] Build `MatchCard` component (team names, score, date)
 - [ ] Build `MatchList` component (LiveScore-style feed)
 - [ ] Fetch and display matches from `GET /matches`
@@ -106,25 +106,25 @@
 > **Goal:** Generate once per match, serve from cache forever after.
 
 ### 3.1 Cache Interface
-- [ ] Define `CacheInterface` (abstract — Open-Closed Principle):
+- [x] Define `CacheInterface` (abstract — Open-Closed Principle):
   ```typescript
   interface CacheProvider {
     get(matchId: string): Promise<CachedAnalysis | null>;
     set(matchId: string, data: CachedAnalysis): Promise<void>;
   }
   ```
-- [ ] Implement `MemoryCache` (in-memory Map)
+- [x] Implement `MemoryCache` (in-memory Map)
 
 ### 3.2 Integrate Cache into Pipeline
-- [ ] Check cache BEFORE football API / LLM / TTS calls
-- [ ] On cache hit: return immediately with `cached: true`
-- [ ] On cache miss: run full pipeline → store result → return with `cached: false`
-- [ ] Deduplicate concurrent requests for the same matchId (avoid parallel LLM calls)
+- [x] Check cache BEFORE football API / LLM / TTS calls
+- [x] On cache hit: return immediately with `cached: true`
+- [x] On cache miss: run full pipeline → store result → return with `cached: false`
+- [x] Deduplicate concurrent requests for the same matchId (avoid parallel LLM calls)
 
 ### 3.3 Verify Cache Behaviour
-- [ ] First request: generates fresh (slow)
-- [ ] Second request: returns cached (instant)
-- [ ] Different matchId: generates fresh
+- [x] First request: generates fresh (slow)
+- [x] Second request: returns cached (instant)
+- [x] Different matchId: generates fresh
 
 **✅ Checkpoint:** Second click on same match returns instantly. No duplicate LLM/TTS spend.
 
