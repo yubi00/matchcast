@@ -166,34 +166,22 @@
 
 ---
 
-## Phase 5 — Polish & Deploy
+## Phase 5 — Polish & Deploy ✅
 
 > **Goal:** Production-ready MVP with live URL.
 
-### 5.1 Frontend Polish
-- [ ] Mobile-responsive match cards
-- [ ] Error state UI ("Analysis unavailable, try again") — already partial, verify coverage
-- [ ] Empty state (no matches available)
-- [ ] Update frontend to send Authorization header with access token on analysis requests
+### 5.1 Deployment ✅
+- [x] Deploy backend to Railway — all env vars set
+- [x] Deploy frontend to Vercel — `VITE_API_BASE_URL` set to Railway URL
+- [x] Fix CORS (trailing slash bug) — locked to `https://matchcast.vercel.app`
+- [x] Verify end-to-end flow live
 
-### 5.2 Backend Hardening
-- [ ] Request timeout handling (30s max for full pipeline — LLM + TTS can be slow)
-- [ ] Ensure key pipeline events are logged via Pino: matchId, cache hit/miss, LLM latency, TTS latency
-- [ ] Use `pino-pretty` in dev, plain JSON in production (env-based)
-- [ ] Tighten CORS — allow only the Vercel frontend domain in production
+### 5.2 Docs ✅
+- [x] Write README — what it is, tech stack, local dev setup, API reference
+- [x] Write ARCHITECTURE.md — every design decision with rationale
+- [x] Add analysis pipeline flow diagram to ARCHITECTURE.md
 
-### 5.3 Deployment
-- [ ] Push repo to GitHub (if not already)
-- [ ] Deploy backend to Railway — set all env vars
-- [ ] Deploy frontend to Vercel — set `VITE_API_BASE_URL` to Railway backend URL
-- [ ] Verify CORS between Vercel and Railway domains
-- [ ] Smoke test: end-to-end flow on 3 different matches (text + audio)
-
-### 5.4 Submission Prep
-- [ ] Write README — what it is, architecture decisions, AI integration rationale, future enhancements (Redis, S3, multi-agent)
-- [ ] Clean up Git history
-- [ ] Export AI conversation logs
-- [ ] Verify live URL works
+### 5.3 Submission Prep
 - [ ] Submit to Patrick.Phelan@Visory.com.au
 
 **✅ Checkpoint:** Live URL works. Code is clean. README tells the story.
@@ -213,10 +201,34 @@
 
 ---
 
+## Phase 6 — Containerisation & Production Hardening
+
+> **Goal:** Docker-ready monorepo, Redis cache, production parity locally.
+
+### 6.1 Containerisation
+- [ ] Write `backend/Dockerfile` — multi-stage: build TS → run compiled JS
+- [ ] Write `frontend/Dockerfile` — multi-stage: Vite build → Nginx static serve
+- [ ] Write `docker-compose.yml` at repo root — wires backend + frontend + Redis for local dev
+- [ ] Verify `docker compose up` runs the full stack end-to-end locally
+
+### 6.2 Redis Cache Provider
+- [ ] Install `ioredis` in backend
+- [ ] Add `REDIS_URL` to `config.ts` + `.env.example`
+- [ ] Implement `RedisCache` class satisfying `CacheProvider` interface (`get` / `set`)
+- [ ] Swap `new MemoryCache()` → `new RedisCache()` in `analysisService.ts` (one line change)
+- [ ] Provision Redis on Railway alongside backend service
+- [ ] Verify cache survives backend restart (MemoryCache would wipe, Redis won't)
+
+### 6.3 Deployment Update
+- [ ] Update Railway to use Dockerfile instead of buildpack
+- [ ] Confirm Vercel still builds correctly from `frontend/Dockerfile` or buildpack
+
+**✅ Checkpoint:** `docker compose up` runs full stack. Cache survives restarts. Ready for multi-instance scale.
+
+---
+
 ## Future Enhancements (Post-Submission)
 
-- [ ] **Containerisation** — add Dockerfile for backend; enables Fly.io deployment and local parity
-- [ ] **Redis** — replace MemoryCache with Redis for persistent, distributed caching across restarts
 - [ ] **S3 + signed URLs** — store audio as binary (not base64) for ~33% size reduction and scalability
 - [ ] **Refresh token rotation** — invalidate old refresh token on each use (family tracking for replay attack prevention)
 - [ ] **Origin checking on `/api/auth/token`** — restrict token issuance to known frontend origins
