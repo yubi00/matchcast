@@ -41,10 +41,22 @@ export async function getAnalysis(fixtureId: number): Promise<CachedAnalysis & {
 }
 
 async function runPipeline(fixtureId: number): Promise<CachedAnalysis> {
+  const pipelineStart = Date.now();
+
   const raw = await fetchFixtureDetail(fixtureId);
   const signals = preprocess(raw);
+
+  const llmStart = Date.now();
   const analysis = await generateAnalysis(signals);
+  const llmMs = Date.now() - llmStart;
+
+  const ttsStart = Date.now();
   const audioBase64 = await generateAudio(analysis);
+  const ttsMs = Date.now() - ttsStart;
+
+  const totalMs = Date.now() - pipelineStart;
+
+  logger.info({ fixtureId, llmMs, ttsMs, totalMs }, 'pipeline complete');
 
   return {
     fixtureId: signals.fixtureId,
