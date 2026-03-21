@@ -14,6 +14,9 @@ const config = {
   apiFootballBaseUrl: requireEnv('API_FOOTBALL_BASE_URL'),
   elevenLabsApiKey: requireEnv('ELEVENLABS_API_KEY'),
   elevenLabsVoiceId: requireEnv('ELEVENLABS_VOICE_ID'),
+  jwtAccessSecret: requireEnv('JWT_ACCESS_SECRET'),
+  jwtRefreshSecret: requireEnv('JWT_REFRESH_SECRET'),
+  clientOrigin: requireEnv('CLIENT_ORIGIN'),
 } as const;
 
 export default config;

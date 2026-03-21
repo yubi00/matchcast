@@ -143,13 +143,24 @@
 - [x] Mount `helmet()` as first middleware in `app.ts`
 - [x] Rename `/health` → `/api/health` for route consistency
 
-### 4.3 JWT Auth (Access + Refresh Token)
-- [ ] Implement `POST /api/auth/login` — returns access token (15min) + sets refresh token in HTTP-only cookie
-- [ ] Implement `POST /api/auth/refresh` — validates refresh token cookie → issues new access token
-- [ ] Implement `POST /api/auth/logout` — clears HTTP-only cookie
-- [ ] Create `authMiddleware.ts` — validates Bearer access token on protected routes
-- [ ] Protect `/api/analysis/:fixtureId` behind auth middleware
-- [ ] `/api/matches` remains public
+### 4.3 JWT Auth — Anonymous Session (Access + Refresh Token) ✅
+> No user login/logout — app auto-generates a guest session on load. Protects API from external abuse.
+
+**Backend:**
+- [x] Install `jsonwebtoken` + `cookie-parser`
+- [x] Add `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CLIENT_ORIGIN` to `config.ts` + `.env.example`
+- [x] Implement `POST /api/auth/token` — issues accessToken (15min) in JSON + refreshToken (7d) in HTTP-only cookie
+- [x] Implement `POST /api/auth/refresh` — validates HTTP-only cookie → issues new accessToken
+- [x] Create `middleware/authMiddleware.ts` — verifies Bearer accessToken, rejects with 401 if invalid/missing
+- [x] Protect `/api/matches` and `/api/analysis` behind `authMiddleware`
+- [x] `/api/auth/*` and `/api/health` remain public
+- [x] Tighten CORS — credentials: true, explicit origin from config
+
+**Frontend:**
+- [x] Create `src/lib/auth.ts` — fetches token on init, handles refresh on 401, exposes `getAccessToken()`
+- [x] Update `apiFetch` in `matchcast.api.ts` — attaches `Authorization: Bearer <token>` to all protected requests
+- [x] On 401 response → call refresh → retry original request once
+- [x] `initAuth()` called before React renders in `main.tsx`
 
 **✅ Checkpoint:** Routes protected, tokens short-lived, refresh token never exposed to JS.
 
