@@ -70,7 +70,7 @@ export function MatchCard({ match }: MatchCardProps) {
       )}
 
       {/* Transcript */}
-      {data && <AnalysisPanel text={data.analysis} />}
+      {data && <AnalysisPanel text={data.analysis} audioBase64={data.audioBase64} />}
     </div>
   );
 }

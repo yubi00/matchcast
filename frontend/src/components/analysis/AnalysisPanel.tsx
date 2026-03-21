@@ -1,8 +1,11 @@
+import { AudioPlayer } from './AudioPlayer';
+
 interface AnalysisPanelProps {
   text: string;
+  audioBase64: string | null;
 }
 
-export function AnalysisPanel({ text }: AnalysisPanelProps) {
+export function AnalysisPanel({ text, audioBase64 }: AnalysisPanelProps) {
   return (
     <div style={{
       marginTop: '12px',
@@ -10,11 +13,12 @@ export function AnalysisPanel({ text }: AnalysisPanelProps) {
       background: 'var(--bg)',
       borderRadius: 'var(--radius)',
       borderLeft: '3px solid var(--accent)',
-      color: 'var(--text-muted)',
-      lineHeight: 1.7,
-      fontSize: '13px',
     }}>
-      {text}
+      {audioBase64 && <AudioPlayer audioBase64={audioBase64} />}
+
+      <p style={{ color: 'var(--text-muted)', lineHeight: 1.7, fontSize: '13px', margin: 0 }}>
+        {text}
+      </p>
     </div>
   );
 }
