@@ -30,18 +30,18 @@
 - [x] Create `middleware/validationMiddleware.ts` — `validateRequest(schema, source)` middleware
 - [x] Apply validation middleware to routes (done when routes are built in §1.3+)
 
-### 1.3 Football API Integration
+### 1.3 Football API Integration ✅
 - [x] Register for api-sports.io API key (free tier — 100 req/day, 10 req/min)
 - [x] Implement `services/footballApi.service.ts` — fetch finished EPL matches (season 2024, status=FT)
 - [x] Implement `routes/matches.router.ts` + `controllers/matches.controller.ts`
-- [x] Implement `GET /api/matches` — returns matches sorted by date desc, supports `?limit=` query param
+- [x] Implement `GET /api/matches` — sorted by date desc, supports `?limit=` and `?offset=` params, returns `hasMore`
 - [x] Handle API errors (`ExternalApiError` on non-2xx or error body)
 
 ### 1.4 Data Preprocessor ✅
 - [x] Implement `services/preprocessor.ts` — raw match data → structured signals
-- [x] Extract: possession, shot efficiency, xG, corners, fouls, pass accuracy
+- [x] Extract: possession, shot efficiency, xG, corners, fouls, pass accuracy, goalkeeper saves
 - [x] Extract: goals (scorer, assist, type, minute), cards (player, type, minute)
-- [x] Calculate derived signals: result, secondHalfGoals, lateGoals (80'+)
+- [x] Calculate derived signals: result, secondHalfGoals, lateGoals (80'+), wasComeback, xGDelta
 - [x] Verified output against real fixture (Man Utd vs Fulham, fixture 1208021)
 
 ### 1.5 Analysis Generation (Text Only) ✅
@@ -83,13 +83,18 @@
 - [x] TTS failure falls back gracefully — text still returned
 - [x] Cache stores audio alongside analysis — ElevenLabs never called twice
 
-### 2.3 Frontend Audio Player
-- [ ] Build `AudioPlayer` component (play/pause, progress bar, time display)
-- [ ] Convert base64 → audio blob → object URL for playback
-- [ ] Auto-play when audio loads
-- [ ] Update `AnalysisPanel` to render `AudioPlayer` + transcript
-- [ ] Text-only fallback when `audioBase64` is null
-- [ ] Update `Analysis` type to include `audioBase64`
+### 2.3 Frontend Audio Player ✅
+- [x] Build `AudioPlayer` component — play/pause, progress bar, time display
+- [x] Convert base64 → blob → object URL; fix StrictMode URL revocation bug
+- [x] Auto-play when audio loads via `onLoadedMetadata`
+- [x] Update `AnalysisPanel` to render `AudioPlayer` + collapsible transcript (Eye/EyeOff icon)
+- [x] Text-only fallback when `audioBase64` is null
+- [x] Update `Analysis` type to include `audioBase64`
+- [x] MatchCast button becomes toggle (outlined) after analysis generated
+- [x] Panel auto-collapses when audio finishes to keep list clean
+- [x] Matches grouped by date with en-AU date headers
+- [x] Load more matches with `useInfiniteQuery` + offset pagination
+- [x] Initial load and "load more" show Loader2 spinner
 
 **✅ Checkpoint:** Click match → hear a pundit-style audio analysis.
 
@@ -124,33 +129,29 @@
 
 ---
 
-## Phase 4 — Validation & Retry
+## Phase 4 — Security & Rate Limiting
 
-> **Goal:** Programmatic quality gate before audio generation.
+> **Goal:** Production-grade security layer — protected routes, rate limiting, auth tokens.
 
-### 4.1 Implement Validator
-- [ ] Implement `validator.ts` with concrete checks:
-  - [ ] **Length:** 3–5 sentences, 50–200 words
-  - [ ] **Team names:** both team names appear in output
-  - [ ] **Stat references:** at least 2 specific stats from match data referenced
-  - [ ] **TTS-readiness:** no markdown, no bullet points, no special characters
-- [ ] Return `{ valid: boolean, failures: string[] }`
+### 4.1 Rate Limiting ✅
+- [x] Install `express-rate-limit`
+- [x] Apply global rate limit (30 req/15min per IP) — all routes
+- [x] Apply stricter limit on `/api/analysis` (10 req/15min per IP — expensive pipeline)
 
-### 4.2 Retry Logic
-- [ ] On validation failure: retry LLM call with appended feedback
-  ```
-  "Your previous analysis failed these checks: {failures}.
-   Please fix: {specific instructions per failure}."
-  ```
-- [ ] Maximum 1 retry (keeps latency bounded)
-- [ ] If retry also fails: return best attempt with quality flag
-- [ ] Log all validation failures for prompt iteration
+### 4.2 Security Headers ✅
+- [x] Install `helmet` — sets secure HTTP headers (XSS, clickjacking, MIME sniffing protection)
+- [x] Mount `helmet()` as first middleware in `app.ts`
+- [x] Rename `/health` → `/api/health` for route consistency
 
-### 4.3 Insert Validator into Pipeline
-- [ ] Validate AFTER LLM, BEFORE TTS
-- [ ] Only send validated text to TTS (saves TTS cost on bad outputs)
+### 4.3 JWT Auth (Access + Refresh Token)
+- [ ] Implement `POST /api/auth/login` — returns access token (15min) + sets refresh token in HTTP-only cookie
+- [ ] Implement `POST /api/auth/refresh` — validates refresh token cookie → issues new access token
+- [ ] Implement `POST /api/auth/logout` — clears HTTP-only cookie
+- [ ] Create `authMiddleware.ts` — validates Bearer access token on protected routes
+- [ ] Protect `/api/analysis/:fixtureId` behind auth middleware
+- [ ] `/api/matches` remains public
 
-**✅ Checkpoint:** Analysis consistently hits quality bar. Retry catches edge cases.
+**✅ Checkpoint:** Routes protected, tokens short-lived, refresh token never exposed to JS.
 
 ---
 
@@ -159,33 +160,32 @@
 > **Goal:** Production-ready MVP with live URL.
 
 ### 5.1 Frontend Polish
-- [ ] Loading skeleton state (not just a spinner)
-- [ ] Error state UI ("Analysis unavailable, try again")
-- [ ] Empty state (no matches available)
 - [ ] Mobile-responsive match cards
-- [ ] Subtle animation on analysis reveal
+- [ ] Error state UI ("Analysis unavailable, try again") — already partial, verify coverage
+- [ ] Empty state (no matches available)
+- [ ] Update frontend to send Authorization header with access token on analysis requests
 
 ### 5.2 Backend Hardening
-- [ ] Request timeout handling (10s max for full pipeline)
-- [ ] Ensure key pipeline events are logged via Pino: matchId, cache hit/miss, LLM latency, TTS latency, validation failures
+- [ ] Request timeout handling (30s max for full pipeline — LLM + TTS can be slow)
+- [ ] Ensure key pipeline events are logged via Pino: matchId, cache hit/miss, LLM latency, TTS latency
 - [ ] Use `pino-pretty` in dev, plain JSON in production (env-based)
-- [ ] Environment-based config (dev vs production API keys)
+- [ ] Tighten CORS — allow only the Vercel frontend domain in production
 
 ### 5.3 Deployment
-- [ ] Deploy frontend to Vercel
-- [ ] Deploy backend to Render or Railway
-- [ ] Set environment variables in hosting platform
-- [ ] Verify CORS between frontend and backend domains
-- [ ] Smoke test: end-to-end flow on 3 different matches
+- [ ] Push repo to GitHub (if not already)
+- [ ] Deploy backend to Railway — set all env vars
+- [ ] Deploy frontend to Vercel — set `VITE_API_BASE_URL` to Railway backend URL
+- [ ] Verify CORS between Vercel and Railway domains
+- [ ] Smoke test: end-to-end flow on 3 different matches (text + audio)
 
 ### 5.4 Submission Prep
-- [ ] Write README — cover: what it is, why this feature, architecture decisions, AI integration rationale, trade-offs
-- [ ] Clean up Git history (squash WIP commits)
+- [ ] Write README — what it is, architecture decisions, AI integration rationale, future enhancements (Redis, S3, multi-agent)
+- [ ] Clean up Git history
 - [ ] Export AI conversation logs
 - [ ] Verify live URL works
 - [ ] Submit to Patrick.Phelan@Visory.com.au
 
-**✅ Checkpoint:** Live URL works. Code is clean. README tells the story. Logs show AI fluency.
+**✅ Checkpoint:** Live URL works. Code is clean. README tells the story.
 
 ---
 
@@ -193,12 +193,12 @@
 
 | Phase | Estimated Time | Cumulative |
 |-------|---------------|------------|
-| Phase 1 — Data Pipeline + Analysis (incl. Zod validation layer) | 5–6 hours | 5–6 hours |
-| Phase 2 — Audio | 2–3 hours | 7–9 hours |
-| Phase 3 — Caching | 1–2 hours | 8–11 hours |
-| Phase 4 — Output Validation & Retry | 1–2 hours | 9–13 hours |
-| Phase 5 — Polish & Deploy | 2–3 hours | 11–16 hours |
-| **Total** | **11–16 hours** | ~2 days |
+| Phase 1 — Data Pipeline + Analysis | 5–6 hours | 5–6 hours |
+| Phase 2 — Audio Generation | 2–3 hours | 7–9 hours |
+| Phase 3 — Caching Layer | 1–2 hours | 8–11 hours |
+| Phase 4 — Security & Rate Limiting | 2–3 hours | 10–14 hours |
+| Phase 5 — Polish & Deploy | 2–3 hours | 12–17 hours |
+| **Total** | **12–17 hours** | ~2 days |
 
 ---
 
