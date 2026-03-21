@@ -3,6 +3,7 @@ import type { CachedAnalysis } from '../cache/cacheProvider';
 import { fetchFixtureDetail } from './footballApi.service';
 import { preprocess } from './preprocessor';
 import { generateAnalysis } from './analysisGenerator';
+import { generateAudio } from './ttsService';
 import logger from '../utils/logger';
 
 const cache = new MemoryCache();
@@ -43,6 +44,7 @@ async function runPipeline(fixtureId: number): Promise<CachedAnalysis> {
   const raw = await fetchFixtureDetail(fixtureId);
   const signals = preprocess(raw);
   const analysis = await generateAnalysis(signals);
+  const audioBase64 = await generateAudio(analysis);
 
   return {
     fixtureId: signals.fixtureId,
@@ -50,6 +52,7 @@ async function runPipeline(fixtureId: number): Promise<CachedAnalysis> {
     awayTeam: signals.awayTeam,
     score: signals.score,
     analysis,
+    audioBase64,
     generatedAt: new Date().toISOString(),
   };
 }

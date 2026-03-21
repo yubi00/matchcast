@@ -26,6 +26,7 @@ export interface Analysis {
     fulltime: { home: number; away: number };
   };
   analysis: string;
+  audioBase64: string | null;
   cached: boolean;
   generatedAt: string;
 }

@@ -12,6 +12,8 @@ const config = {
   openAiApiKey: requireEnv('OPENAI_API_KEY'),
   apiFootballKey: requireEnv('API_FOOTBALL_KEY'),
   apiFootballBaseUrl: requireEnv('API_FOOTBALL_BASE_URL'),
+  elevenLabsApiKey: requireEnv('ELEVENLABS_API_KEY'),
+  elevenLabsVoiceId: requireEnv('ELEVENLABS_VOICE_ID'),
 } as const;
 
 export default config;

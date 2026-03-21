@@ -9,6 +9,7 @@ export interface CachedAnalysis {
     fulltime: { home: number; away: number };
   };
   analysis: string;
+  audioBase64: string | null;
   generatedAt: string;
 }
 

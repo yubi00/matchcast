@@ -9,7 +9,7 @@
 ### 1.0 Repo & Environment Bootstrap ✅
 - [x] Initialize Git repository, add `.gitignore` (node_modules, .env, dist)
 - [x] Create `.env.example` documenting all required env vars (no secrets committed)
-- [ ] Create monorepo root with `backend/` and `frontend/` directories
+- [x] Create monorepo root with `backend/` and `frontend/` directories
 
 ### 1.1 Backend Setup ✅
 - [x] Initialize Node.js + TypeScript project (`backend/`)
@@ -73,29 +73,23 @@
 
 > **Goal:** `matchId → fetch → preprocess → LLM → TTS → return text + audio`
 
-### 2.1 TTS Integration
-- [ ] Choose TTS provider — ElevenLabs (better voice quality for pundit feel)
-- [ ] Implement `ttsService.ts` — text → audio (base64 MP3)
-- [ ] Select a pundit-appropriate voice (male, authoritative, natural)
-- [ ] Handle TTS errors gracefully (return `audioBase64: null`)
+### 2.1 TTS Integration ✅
+- [x] Choose TTS provider — ElevenLabs (eleven_multilingual_v2, Antoni voice)
+- [x] Implement `ttsService.ts` — text → base64 MP3 via ElevenLabs SDK
+- [x] Handle TTS errors gracefully (return `audioBase64: null`)
 
-### 2.2 Backend Response Update
-- [ ] Update `GET /analysis/:matchId` to return full `AnalysisResponse`:
-  ```typescript
-  {
-    matchId, homeTeam, awayTeam, score,
-    analysis, audioBase64, cached, generatedAt
-  }
-  ```
-- [ ] If TTS fails, still return text with `audioBase64: null`
+### 2.2 Backend Response Update ✅
+- [x] Updated `GET /api/analysis/:matchId` returns `audioBase64: string | null`
+- [x] TTS failure falls back gracefully — text still returned
+- [x] Cache stores audio alongside analysis — ElevenLabs never called twice
 
 ### 2.3 Frontend Audio Player
-- [ ] Build `AnalysisPlayer` component (play/pause, progress bar)
+- [ ] Build `AudioPlayer` component (play/pause, progress bar, time display)
 - [ ] Convert base64 → audio blob → object URL for playback
 - [ ] Auto-play when audio loads
-- [ ] Ensure only one match audio plays at a time
-- [ ] Show text alongside audio (optional expand/collapse)
+- [ ] Update `AnalysisPanel` to render `AudioPlayer` + transcript
 - [ ] Text-only fallback when `audioBase64` is null
+- [ ] Update `Analysis` type to include `audioBase64`
 
 **✅ Checkpoint:** Click match → hear a pundit-style audio analysis.
 
