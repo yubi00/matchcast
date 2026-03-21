@@ -32,11 +32,41 @@ export function MatchList() {
 
   const matches = data?.pages.flatMap((p) => p.matches) ?? [];
 
+  const grouped = matches.reduce<Record<string, typeof matches>>((acc, match) => {
+    const key = match.date.split('T')[0];
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(match);
+    return acc;
+  }, {});
+
+  const formatDateHeader = (dateKey: string) =>
+    new Date(dateKey).toLocaleDateString('en-AU', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    });
+
   return (
     <div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {matches.map((match) => (
-          <MatchCard key={match.id} match={match} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        {Object.entries(grouped).map(([dateKey, dayMatches]) => (
+          <div key={dateKey}>
+            <div style={{
+              fontSize: '11px',
+              fontWeight: 600,
+              color: 'var(--text-muted)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              marginBottom: '10px',
+              paddingBottom: '6px',
+              borderBottom: '1px solid var(--border)',
+            }}>
+              {formatDateHeader(dateKey)}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {dayMatches.map((match) => (
+                <MatchCard key={match.id} match={match} />
+              ))}
+            </div>
+          </div>
         ))}
       </div>
 

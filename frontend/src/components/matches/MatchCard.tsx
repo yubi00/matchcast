@@ -22,10 +22,6 @@ export function MatchCard({ match }: MatchCardProps) {
     }
   };
 
-  const formattedDate = new Date(match.date).toLocaleDateString('en-GB', {
-    weekday: 'short', day: 'numeric', month: 'short',
-  });
-
   return (
     <div style={{
       background: 'var(--surface)',
@@ -33,11 +29,6 @@ export function MatchCard({ match }: MatchCardProps) {
       borderRadius: 'var(--radius)',
       padding: '14px 16px',
     }}>
-      {/* Date */}
-      <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '11px', marginBottom: '10px' }}>
-        {formattedDate}
-      </div>
-
       {/* Teams + score */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
         {/* Home team */}
