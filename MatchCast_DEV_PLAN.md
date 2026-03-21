@@ -213,6 +213,17 @@
 
 ---
 
+## Future Enhancements (Post-Submission)
+
+- [ ] **Containerisation** — add Dockerfile for backend; enables Fly.io deployment and local parity
+- [ ] **Redis** — replace MemoryCache with Redis for persistent, distributed caching across restarts
+- [ ] **S3 + signed URLs** — store audio as binary (not base64) for ~33% size reduction and scalability
+- [ ] **Refresh token rotation** — invalidate old refresh token on each use (family tracking for replay attack prevention)
+- [ ] **Origin checking on `/api/auth/token`** — restrict token issuance to known frontend origins
+- [ ] **Multi-agent orchestration** — separate agents for fetch → preprocess → LLM → TTS → validate
+
+---
+
 ## Development Rules
 
 - Complete and test each phase before moving to the next
