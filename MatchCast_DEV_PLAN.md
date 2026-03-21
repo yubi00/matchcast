@@ -52,18 +52,18 @@
 - [x] Update `GET /api/analysis/:matchId` — returns fixtureId, teams, score, analysis text
 - [x] Tested on real fixture — output quality verified
 
-### 1.6 Frontend Setup
+### 1.6 Frontend Setup ✅
 - [x] Create React + TypeScript app with Vite (`frontend/`)
-- [ ] Build `MatchCard` component (team names, score, date)
-- [ ] Build `MatchList` component (LiveScore-style feed)
-- [ ] Fetch and display matches from `GET /matches`
+- [x] Build `MatchCard` component (team logos, score, HT score, date)
+- [x] Build `MatchList` component (LiveScore-style feed)
+- [x] Fetch and display matches from `GET /api/matches` via TanStack Query
 
-### 1.7 UI Integration (Text Only)
-- [ ] Add "Analyse" button to each `MatchCard`
-- [ ] Build `useAnalysis` hook (fetch, loading, error states)
-- [ ] Build `LoadingState` component (skeleton/spinner)
-- [ ] Display analysis text on button click
-- [ ] Disable button while request is in flight
+### 1.7 UI Integration (Text Only) ✅
+- [x] Add `MatchCast` button to each `MatchCard`
+- [x] Build `useAnalysis` hook with TanStack Query (fetch, loading, error states)
+- [x] Display analysis transcript on button click (`AnalysisPanel`)
+- [x] Button disabled while request is in flight
+- [x] Dark theme — black/orange/white, livescore-inspired, CSS custom properties
 
 **✅ Checkpoint:** Can click any match → see AI-generated pundit analysis text.
 
@@ -74,7 +74,7 @@
 > **Goal:** `matchId → fetch → preprocess → LLM → TTS → return text + audio`
 
 ### 2.1 TTS Integration
-- [ ] Choose TTS provider (ElevenLabs or OpenAI TTS)
+- [ ] Choose TTS provider — ElevenLabs (better voice quality for pundit feel)
 - [ ] Implement `ttsService.ts` — text → audio (base64 MP3)
 - [ ] Select a pundit-appropriate voice (male, authoritative, natural)
 - [ ] Handle TTS errors gracefully (return `audioBase64: null`)
