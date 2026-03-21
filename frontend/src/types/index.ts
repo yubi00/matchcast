@@ -15,6 +15,7 @@ export interface Match {
 export interface MatchesResponse {
   matches: Match[];
   total: number;
+  hasMore: boolean;
 }
 
 export interface Analysis {

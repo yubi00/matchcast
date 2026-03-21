@@ -8,8 +8,8 @@ async function apiFetch<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export const fetchMatches = (): Promise<MatchesResponse> =>
-  apiFetch<MatchesResponse>('/api/matches?limit=20');
+export const fetchMatches = (offset = 0): Promise<MatchesResponse> =>
+  apiFetch<MatchesResponse>(`/api/matches?limit=20&offset=${offset}`);
 
 export const fetchAnalysis = (fixtureId: number): Promise<Analysis> =>
   apiFetch<Analysis>(`/api/analysis/${fixtureId}`);
