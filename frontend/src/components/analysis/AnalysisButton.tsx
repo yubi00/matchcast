@@ -8,7 +8,7 @@ export function AnalysisButton({ onClick, isLoading, isActive }: AnalysisButtonP
   return (
     <button
       onClick={onClick}
-      disabled={isLoading}
+      disabled={isLoading || isActive}
       style={{
         marginTop: '10px',
         padding: '7px 14px',
@@ -19,6 +19,7 @@ export function AnalysisButton({ onClick, isLoading, isActive }: AnalysisButtonP
         fontWeight: 600,
         fontSize: '12px',
         opacity: isLoading ? 0.6 : 1,
+        cursor: isLoading || isActive ? 'not-allowed' : 'pointer',
         transition: 'background 0.2s, opacity 0.2s',
       }}
     >
