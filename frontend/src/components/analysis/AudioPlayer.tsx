@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 
 interface AudioPlayerProps {
   audioBase64: string;
+  onEnded?: () => void;
 }
 
-export function AudioPlayer({ audioBase64 }: AudioPlayerProps) {
+export function AudioPlayer({ audioBase64, onEnded }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -34,7 +35,7 @@ export function AudioPlayer({ audioBase64 }: AudioPlayerProps) {
   const onTimeUpdate = () => setCurrentTime(audioRef.current?.currentTime ?? 0);
   const onPlay = () => setIsPlaying(true);
   const onPause = () => setIsPlaying(false);
-  const onEnded = () => { setIsPlaying(false); setCurrentTime(0); };
+  const handleEnded = () => { setIsPlaying(false); setCurrentTime(0); onEnded?.(); };
 
   const onSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = Number(e.target.value);
@@ -54,7 +55,7 @@ export function AudioPlayer({ audioBase64 }: AudioPlayerProps) {
         onTimeUpdate={onTimeUpdate}
         onPlay={onPlay}
         onPause={onPause}
-        onEnded={onEnded}
+        onEnded={handleEnded}
       />
 
       <button onClick={togglePlay} style={{

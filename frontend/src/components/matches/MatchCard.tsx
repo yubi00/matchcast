@@ -10,7 +10,17 @@ interface MatchCardProps {
 
 export function MatchCard({ match }: MatchCardProps) {
   const [requested, setRequested] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { data, isFetching, isError } = useAnalysis(requested ? match.id : null);
+
+  const handleButtonClick = () => {
+    if (!data) {
+      setRequested(true);
+      setIsExpanded(true);
+    } else {
+      setIsExpanded(prev => !prev);
+    }
+  };
 
   const formattedDate = new Date(match.date).toLocaleDateString('en-GB', {
     weekday: 'short', day: 'numeric', month: 'short',
@@ -56,9 +66,10 @@ export function MatchCard({ match }: MatchCardProps) {
       {/* MatchCast button */}
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
         <AnalysisButton
-          onClick={() => setRequested(true)}
+          onClick={handleButtonClick}
           isLoading={isFetching}
-          isActive={!!data}
+          isGenerated={!!data}
+          isExpanded={isExpanded}
         />
       </div>
 
@@ -69,8 +80,14 @@ export function MatchCard({ match }: MatchCardProps) {
         </p>
       )}
 
-      {/* Transcript */}
-      {data && <AnalysisPanel text={data.analysis} audioBase64={data.audioBase64} />}
+      {/* Analysis panel */}
+      {data && isExpanded && (
+        <AnalysisPanel
+          text={data.analysis}
+          audioBase64={data.audioBase64}
+          onAudioEnded={() => setIsExpanded(false)}
+        />
+      )}
     </div>
   );
 }

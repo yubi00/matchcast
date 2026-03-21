@@ -1,29 +1,32 @@
 interface AnalysisButtonProps {
   onClick: () => void;
   isLoading: boolean;
-  isActive: boolean;
+  isGenerated: boolean;
+  isExpanded: boolean;
 }
 
-export function AnalysisButton({ onClick, isLoading, isActive }: AnalysisButtonProps) {
+export function AnalysisButton({ onClick, isLoading, isGenerated, isExpanded }: AnalysisButtonProps) {
+  const filled = !isGenerated;
+
   return (
     <button
       onClick={onClick}
-      disabled={isLoading || isActive}
+      disabled={isLoading}
       style={{
         marginTop: '10px',
         padding: '7px 14px',
-        background: isActive ? 'var(--surface)' : 'var(--accent)',
-        color: isActive ? 'var(--accent)' : '#fff',
-        border: isActive ? '1px solid var(--accent)' : '1px solid transparent',
+        background: filled ? 'var(--accent)' : 'transparent',
+        color: filled ? '#fff' : 'var(--accent)',
+        border: `1px solid ${filled ? 'transparent' : 'var(--accent)'}`,
         borderRadius: 'var(--radius)',
         fontWeight: 600,
         fontSize: '12px',
         opacity: isLoading ? 0.6 : 1,
-        cursor: isLoading || isActive ? 'not-allowed' : 'pointer',
+        cursor: isLoading ? 'not-allowed' : 'pointer',
         transition: 'background 0.2s, opacity 0.2s',
       }}
     >
-      {isLoading ? 'Generating...' : '▶ MatchCast'}
+      {isLoading ? 'Generating...' : isExpanded ? '▲ MatchCast' : '▶ MatchCast'}
     </button>
   );
 }
