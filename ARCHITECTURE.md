@@ -15,7 +15,8 @@ Browser
   │
   ├─ GET /api/matches ──────────────────────────────────► Matches Controller
   │   Authorization: Bearer <token>                          │
-  │                                                          └─► api-sports.io (fetched once on startup)
+  │                                                          └─► fixtures.json (loaded from disk at startup)
+  │                                                               zero API calls, survives restarts
   │
   └─ GET /api/analysis/:fixtureId ─────────────────────► Analysis Controller
       Authorization: Bearer <token>                          │
@@ -23,7 +24,7 @@ Browser
                                                              │
                                                              └─ Cache miss:
                                                                   │
-                                                                  ├─► api-sports.io (fixture detail)
+                                                                  ├─► api-sports.io (fixture detail only)
                                                                   ├─► preprocessor (raw → signals)
                                                                   ├─► GPT-4o (signals → prose)
                                                                   ├─► ElevenLabs (prose → base64 MP3)
@@ -192,6 +193,18 @@ Request A ───────────────────────�
 Request B ──────────────────────────────────────────────► receives same result
 ```
 
+### Fixture list: file-based over API
+
+**Problem encountered in production:** The original design fetched all 380 EPL fixtures from api-sports.io on every call to `GET /api/matches` with no caching. This caused two compounding issues:
+
+1. **No request-level caching** — every page load, every "Load More" click, and every TanStack Query retry triggered a fresh api-sports.io call. Combined with Railway redeploys (which restart the process), the 100 requests/day free tier quota was exhausted rapidly, resulting in a suspended API account.
+
+2. **In-flight deduplication alone wasn't enough** — even after adding a module-level in-memory cache, Railway restarts would wipe it and the first burst of requests after each restart would burn through quota again.
+
+**Solution:** Since the 2024 EPL season is complete, the fixture list is immutable. A one-time seed script (`scripts/seedFixtures.mjs`) fetches all 380 fixtures and writes them to `src/data/fixtures.json`, committed to the repo. The service reads this file synchronously at module load time into a module-level constant. api-sports.io is never called for the matches list — not on startup, not on restart, not ever.
+
+**Trade-off acknowledged:** For a live season with new fixtures each week, this approach would not work. The production path would be an api-sports.io Pro subscription with webhook-based updates or a scheduled refresh job, with Redis as the cache layer.
+
 ### MemoryCache: why in-process memory for MVP
 
 Alternatives considered:
@@ -300,7 +313,7 @@ CORS is locked to the Vercel domain in production via `CLIENT_ORIGIN`. `NODE_ENV
 
 | Enhancement | Rationale |
 |-------------|-----------|
-| Redis | Persistent cache across restarts, shareable across multiple backend instances |
+| Redis | Persistent analysis cache across restarts — fixture list is already file-based; Redis would prevent costly GPT-4o/ElevenLabs re-runs after Railway redeploys |
 | S3 + signed URLs | Store audio as binary — 33% smaller, scales to thousands of cached fixtures |
 | Dockerfile | Enables Fly.io (free, always-on) and local environment parity |
 | Refresh token rotation | Invalidate old refresh token on each use — prevents replay attacks |

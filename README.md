@@ -10,7 +10,7 @@ AI-powered audio match analysis for the Premier League. Pick any finished EPL 20
 
 1. Browse all 380 finished EPL 2024/25 fixtures, grouped by date
 2. Click **MatchCast** on any match
-3. The backend fetches live match stats, preprocesses them into structured signals, generates a pundit-style analysis with GPT-4o, and converts it to audio via ElevenLabs TTS
+3. The backend fetches detailed match stats from api-sports.io, preprocesses them into structured signals, generates a pundit-style analysis with GPT-4o, and converts it to audio via ElevenLabs TTS
 4. Audio auto-plays in the browser — toggle the transcript if you want to read along
 5. Results are cached — second click is instant, no repeated API spend
 
@@ -21,7 +21,7 @@ AI-powered audio match analysis for the Premier League. Pick any finished EPL 20
 **Backend** — Node.js · Express 5 · TypeScript
 **Frontend** — React 19 · Vite · TypeScript · TanStack Query · Axios
 **AI** — OpenAI GPT-4o · ElevenLabs eleven_multilingual_v2
-**Data** — api-sports.io (EPL 2024/25, status=FT)
+**Data** — api-sports.io (fixture detail) · seeded `fixtures.json` (match list)
 **Auth** — JWT (access token in memory + refresh token in HTTP-only cookie)
 **Deployment** — Railway (backend) · Vercel (frontend)
 
@@ -32,7 +32,7 @@ AI-powered audio match analysis for the Premier League. Pick any finished EPL 20
 ### Prerequisites
 
 - Node.js 20+
-- API keys: OpenAI, ElevenLabs, api-sports.io
+- API keys: OpenAI, ElevenLabs, api-sports.io (only needed for fixture detail — match list is served from `src/data/fixtures.json`)
 
 ### Backend
 
@@ -62,11 +62,12 @@ matchcast/
 │   └── src/
 │       ├── cache/           # CacheProvider interface + MemoryCache implementation
 │       ├── controllers/     # Request/response handling (thin layer)
+│       ├── data/            # fixtures.json — seeded EPL 2024 match list
 │       ├── errors/          # AppError base class + typed subclasses
 │       ├── middleware/       # auth, validation, rate limiting, error handling
 │       ├── routes/          # Express routers
 │       ├── services/
-│       │   ├── footballApi.service.ts   # Fetch fixture data from api-sports.io
+│       │   ├── footballApi.service.ts   # Match list from disk; fixture detail from api-sports.io
 │       │   ├── preprocessor.ts          # Raw API → structured MatchSignals
 │       │   ├── analysisGenerator.ts     # MatchSignals → GPT-4o → prose
 │       │   ├── ttsService.ts            # Text → ElevenLabs → base64 MP3

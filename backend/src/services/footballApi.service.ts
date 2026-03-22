@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import config from '../config';
 import { ExternalApiError } from '../errors/AppError';
 
@@ -49,26 +51,21 @@ export interface ApiFixtureDetail {
   }>;
 }
 
+// ── Seeded fixture data (loaded once from disk) ───────────────────────────────
+
+const FIXTURES_PATH = path.join(__dirname, '../data/fixtures.json');
+
+function loadFixturesFromDisk(): Match[] {
+  const raw = JSON.parse(fs.readFileSync(FIXTURES_PATH, 'utf-8')) as ApiFixture[];
+  return raw.map(mapFixture);
+}
+
+const fixturesCache: Match[] = loadFixturesFromDisk();
+
 // ── Service ─────────────────────────────────────────────────────────────────
 
 export async function fetchMatches(): Promise<Match[]> {
-  const url = `${config.apiFootballBaseUrl}/fixtures?league=39&season=2024&status=FT`;
-
-  const response = await fetch(url, {
-    headers: { 'x-apisports-key': config.apiFootballKey },
-  });
-
-  if (!response.ok) {
-    throw new ExternalApiError(`API-Football responded with ${response.status}`);
-  }
-
-  const data = (await response.json()) as ApiFixturesResponse;
-
-  if (data.errors && Object.keys(data.errors).length > 0) {
-    throw new ExternalApiError(`API-Football error: ${JSON.stringify(data.errors)}`);
-  }
-
-  return data.response.map(mapFixture);
+  return fixturesCache;
 }
 
 export async function fetchFixtureDetail(fixtureId: number): Promise<ApiFixtureDetail> {
@@ -116,11 +113,6 @@ function mapFixture(f: ApiFixture): Match {
 }
 
 // ── Internal API response types (not exported) ────────────────────────────────
-
-interface ApiFixturesResponse {
-  errors: Record<string, string> | unknown[];
-  response: ApiFixture[];
-}
 
 interface ApiFixture {
   fixture: {

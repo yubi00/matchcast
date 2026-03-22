@@ -181,7 +181,15 @@
 - [x] Write ARCHITECTURE.md — every design decision with rationale
 - [x] Add analysis pipeline flow diagram to ARCHITECTURE.md
 
-### 5.3 Submission Prep
+### 5.3 Production Incident & Fix ✅
+- [x] Diagnosed api-sports.io account suspension caused by unbounded API calls (no caching on fixture list)
+- [x] Added module-level in-memory cache + in-flight deduplication to `footballApi.service.ts`
+- [x] Identified root cause: Railway restarts wiped in-memory cache, triggering fresh API calls on each restart
+- [x] Seeded all 380 EPL 2024 fixtures to `src/data/fixtures.json` via `scripts/seedFixtures.mjs`
+- [x] Refactored `footballApi.service.ts` to load fixture list from disk — zero api-sports.io calls for matches
+- [x] Updated ARCHITECTURE.md with incident writeup and rationale
+
+### 5.4 Submission Prep
 - [ ] Submit to Patrick.Phelan@Visory.com.au
 
 **✅ Checkpoint:** Live URL works. Code is clean. README tells the story.
