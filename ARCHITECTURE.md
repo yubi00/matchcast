@@ -384,6 +384,21 @@ At that point, the architecture would be: Postgres (source of truth) → Redis (
 
 ---
 
+### API Versioning
+
+**Current limitation:** All endpoints are prefixed with `/api/` (e.g. `/api/matches`, `/api/analysis/:id`). There is no version segment. Any breaking change to the API contract would immediately break existing clients.
+
+**Solution:** Prefix routes with `/api/v1/`. In `app.ts` this is a one-line change per router:
+
+```typescript
+app.use('/api/v1/matches', authMiddleware, matchesRouter);
+app.use('/api/v1/analysis', analysisLimiter, authMiddleware, analysisRouter);
+```
+
+When a breaking change is needed, `/api/v2/` routes are added alongside `/api/v1/` — old clients continue working until they migrate. This is standard practice for any API with external consumers.
+
+---
+
 ### Live Season Support — API Pro Plan
 
 **Current limitation:** The fixture list is a static `fixtures.json` seeded from the 2024 EPL season (now complete). This works because the data is immutable. For a live season, new fixtures are added each week and scores change in real time.
