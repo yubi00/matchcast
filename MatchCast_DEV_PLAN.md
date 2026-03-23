@@ -213,23 +213,18 @@
 
 > **Goal:** Docker-ready monorepo, Redis cache, production parity locally.
 
-### 6.1 Containerisation
-- [ ] Write `backend/Dockerfile` — multi-stage: build TS → run compiled JS
-- [ ] Write `frontend/Dockerfile` — multi-stage: Vite build → Nginx static serve
-- [ ] Write `docker-compose.yml` at repo root — wires backend + frontend + Redis for local dev
-- [ ] Verify `docker compose up` runs the full stack end-to-end locally
+### 6.1 Containerisation ✅
+- [x] Write `backend/Dockerfile` — multi-stage: build TS → run compiled JS on node:20-alpine
+- [x] Write `frontend/Dockerfile` — multi-stage: Vite build → serve with vite preview (no Nginx)
+- [x] Write `docker-compose.yml` at repo root — wires both services, VITE_API_BASE_URL as build arg
+- [ ] Verify `docker compose up` runs the full stack end-to-end (test in GitHub Codespaces)
 
-### 6.2 Redis Cache Provider
-- [ ] Install `ioredis` in backend
-- [ ] Add `REDIS_URL` to `config.ts` + `.env.example`
-- [ ] Implement `RedisCache` class satisfying `CacheProvider` interface (`get` / `set`)
-- [ ] Swap `new MemoryCache()` → `new RedisCache()` in `analysisService.ts` (one line change)
-- [ ] Provision Redis on Railway alongside backend service
-- [ ] Verify cache survives backend restart (MemoryCache would wipe, Redis won't)
+### 6.2 Redis Cache Provider (documented as future enhancement)
+- Redis deferred — `CacheProvider` interface already supports it as a drop-in swap
+- Documented in ARCHITECTURE.md Future Enhancements
 
 ### 6.3 Deployment Update
 - [ ] Update Railway to use Dockerfile instead of buildpack
-- [ ] Confirm Vercel still builds correctly from `frontend/Dockerfile` or buildpack
 
 **✅ Checkpoint:** `docker compose up` runs full stack. Cache survives restarts. Ready for multi-instance scale.
 
@@ -237,9 +232,9 @@
 
 ## Future Enhancements (Post-Submission)
 
+- [ ] **Redis** — replace `MemoryCache` with `RedisCache` implementing `CacheProvider` interface; analysis cache survives Railway restarts, no repeated GPT-4o/ElevenLabs spend
 - [ ] **S3 + signed URLs** — store audio as binary (not base64) for ~33% size reduction and scalability
 - [ ] **Refresh token rotation** — invalidate old refresh token on each use (family tracking for replay attack prevention)
-- [ ] **Origin checking on `/api/auth/token`** — restrict token issuance to known frontend origins
 - [ ] **Multi-agent orchestration** — separate agents for fetch → preprocess → LLM → TTS → validate
 
 ---

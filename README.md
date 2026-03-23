@@ -31,11 +31,22 @@ AI-powered audio match analysis for the Premier League. Pick any finished EPL 20
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 20+ (or Docker)
 - API keys: OpenAI, ElevenLabs, api-sports.io (only needed for fixture detail — match list is served from `src/data/fixtures.json`)
 
-### Backend
+### With Docker (recommended)
 
+```bash
+cp backend/.env.example backend/.env   # fill in your keys
+docker compose up --build
+```
+
+- Frontend: http://localhost:4173
+- Backend: http://localhost:3000
+
+### Without Docker
+
+**Backend**
 ```bash
 cd backend
 cp .env.example .env   # fill in your keys
@@ -43,8 +54,7 @@ npm install
 npm run dev            # http://localhost:3000
 ```
 
-### Frontend
-
+**Frontend**
 ```bash
 cd frontend
 cp .env.example .env   # set VITE_API_BASE_URL=http://localhost:3000

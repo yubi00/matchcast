@@ -307,6 +307,18 @@ Dates are formatted with `toLocaleDateString('en-AU', { weekday: 'long', ... })`
 
 CORS is locked to the Vercel domain in production via `CLIENT_ORIGIN`. `NODE_ENV=production` enables `secure: true` on the refresh token cookie (HTTPS-only).
 
+### Local development with Docker
+
+Both services are containerised for local environment parity:
+
+- `backend/Dockerfile` — multi-stage: installs all deps + compiles TS in `builder`, then installs production deps only and copies `dist/` in `runner` (node:20-alpine)
+- `frontend/Dockerfile` — multi-stage: builds Vite bundle in `builder`, serves with `vite preview` in `runner`
+- `docker-compose.yml` — wires both services; `VITE_API_BASE_URL` is passed as a build `ARG` because Vite bakes env vars into the bundle at build time, not runtime
+
+```bash
+docker compose up --build   # runs full stack on localhost:3000 (backend) + localhost:4173 (frontend)
+```
+
 ---
 
 ## Future Enhancements
