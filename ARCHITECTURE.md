@@ -323,11 +323,69 @@ docker compose up --build   # runs full stack on localhost:3000 (backend) + loca
 
 ## Future Enhancements
 
-| Enhancement | Rationale |
-|-------------|-----------|
-| Redis | Persistent analysis cache across restarts — fixture list is already file-based; Redis would prevent costly GPT-4o/ElevenLabs re-runs after Railway redeploys |
-| S3 + signed URLs | Store audio as binary — 33% smaller, scales to thousands of cached fixtures |
-| Dockerfile | Enables Fly.io (free, always-on) and local environment parity |
-| Refresh token rotation | Invalidate old refresh token on each use — prevents replay attacks |
-| Origin check on `/api/auth/token` | Restrict token issuance to known frontend origins only |
-| Multi-agent orchestration | Separate agents for fetch → preprocess → LLM → TTS → validate, with retries per stage |
+### Redis — Persistent Analysis Cache
+
+**Current limitation:** `MemoryCache` wipes on every Railway restart or redeploy. Any fixture whose analysis was previously generated needs to be re-run through the full GPT-4o + ElevenLabs pipeline — costing money and adding 10-20s of latency for the first user after each restart.
+
+**Solution:** Replace `MemoryCache` with a `RedisCache` implementation of the existing `CacheProvider` interface. The swap is a single line in `analysisService.ts`. Railway can provision a Redis instance alongside the backend at minimal cost. Analysis results survive restarts indefinitely.
+
+**Why the interface matters:** The `CacheProvider` abstraction was designed specifically for this swap. No controller, route, or service code changes — only the concrete implementation changes.
+
+---
+
+### S3 + Signed URLs — Audio Storage
+
+**Current limitation:** Audio is returned as a base64-encoded string inside the JSON response. Base64 adds ~33% overhead to payload size. For a 70-second audio clip, that's significant over mobile connections. All audio is also regenerated if the cache is lost.
+
+**Solution:** Store audio as binary `.mp3` in S3 (or equivalent object storage). Return a short-lived signed URL in the API response. The frontend fetches the audio directly from S3 — bypassing the backend entirely for the binary data. This also decouples audio storage from the cache layer.
+
+---
+
+### Refresh Token Rotation
+
+**Current limitation:** The refresh token is valid for 7 days and never invalidated after use. If an attacker extracts the refresh token cookie (e.g. via physical access or a compromised network), they can generate access tokens indefinitely for 7 days.
+
+**Solution:** On each `/api/auth/refresh` call, invalidate the old refresh token and issue a new one (stored server-side in Redis or a database). If an old refresh token is used (replay attack), the entire token family is revoked. This is the industry-standard approach used by Auth0, Supabase, and others.
+
+---
+
+### Multi-Agent Orchestration
+
+**Current limitation:** The analysis pipeline is a linear chain — fetch → preprocess → LLM → TTS — all inside a single `async` function. If any step fails, the whole pipeline fails with no partial recovery. There is no retry granularity per stage.
+
+**Solution:** Break each stage into a separate agent with its own retry policy, timeout, and error handling. An orchestrator agent coordinates the pipeline and can retry individual stages independently — e.g. retry TTS without re-running the LLM if ElevenLabs has a transient error. This also enables parallelism where stages are independent.
+
+---
+
+### PostgreSQL — When a Database Becomes Necessary
+
+**Why there is no database today:** MatchCast has no user accounts, no persistent user state, and no relational data. Every piece of data either comes from an external API (api-sports.io), is derived in-memory (preprocessed signals), or is a generated artefact (analysis text + audio). There is nothing that needs to be stored relationally.
+
+**Redis vs PostgreSQL — different tools for different problems:**
+
+| | Redis | PostgreSQL |
+|---|---|---|
+| Type | In-memory key-value store | Relational database |
+| Read speed | Microseconds | Milliseconds |
+| Persistence | Optional (primarily ephemeral) | Always (ACID transactions) |
+| Best for | Caching, sessions, leaderboards | Users, orders, structured data with relationships |
+| Query model | Key lookup | SQL — joins, aggregations, filters |
+
+They are complementary, not alternatives. Most production systems use both — Postgres as the source of truth, Redis as the cache layer in front of it.
+
+**When PostgreSQL would be introduced:**
+
+- **User accounts** — storing credentials, OAuth tokens, preferences
+- **Saved favourites** — a `user_fixtures` join table
+- **Usage tracking / billing** — who generated what, when, at what cost
+- **Analysis history per user** — personalised feed, replay history
+
+At that point, the architecture would be: Postgres (source of truth) → Redis (cache) → API → client. Analysis results could live in Postgres with a Redis TTL cache in front, invalidated on demand.
+
+---
+
+### Live Season Support — API Pro Plan
+
+**Current limitation:** The fixture list is a static `fixtures.json` seeded from the 2024 EPL season (now complete). This works because the data is immutable. For a live season, new fixtures are added each week and scores change in real time.
+
+**Solution:** Subscribe to api-sports.io Pro plan (removes rate limits, adds webhooks). Replace `loadFixturesFromDisk()` with a scheduled refresh job (e.g. every 24 hours) that fetches new fixtures and updates the cache. Redis stores the fixture list so it survives restarts without re-fetching. Webhook events can trigger immediate cache invalidation when a match finishes.

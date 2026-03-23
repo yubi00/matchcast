@@ -44,6 +44,8 @@ docker compose up --build
 - Frontend: http://localhost:80
 - Backend: http://localhost:3000
 
+> **Note:** When running with Docker, set `CLIENT_ORIGIN=http://localhost:80` in `backend/.env` so the backend allows CORS requests from the containerised frontend. For production (Railway + Vercel), `CLIENT_ORIGIN` should remain `https://matchcast.vercel.app`.
+
 ### Without Docker
 
 **Backend**
