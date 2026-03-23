@@ -41,7 +41,7 @@ cp backend/.env.example backend/.env   # fill in your keys
 docker compose up --build
 ```
 
-- Frontend: http://localhost:4173
+- Frontend: http://localhost:80
 - Backend: http://localhost:3000
 
 ### Without Docker
