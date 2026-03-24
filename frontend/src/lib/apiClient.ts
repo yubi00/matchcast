@@ -4,7 +4,7 @@ import { getAccessToken, refreshAuth } from './auth';
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
 
 const apiClient = axios.create({
-  baseURL: BASE_URL,
+  baseURL: `${BASE_URL}/api/v1`,
   withCredentials: true,
 });
 
