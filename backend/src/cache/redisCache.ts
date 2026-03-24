@@ -1,18 +1,9 @@
-import Redis from 'ioredis';
 import type { CacheProvider, CachedAnalysis } from './cacheProvider';
-import logger from '../utils/logger';
+import { getRedisClient } from './redisClient';
 
 export class RedisCache implements CacheProvider {
-  private readonly client: Redis;
-
-  constructor(redisUrl: string) {
-    this.client = new Redis(redisUrl, {
-      lazyConnect: true,
-      maxRetriesPerRequest: 3,
-    });
-
-    this.client.on('connect', () => logger.info('Redis connected'));
-    this.client.on('error', (err) => logger.error({ err }, 'Redis error'));
+  private get client() {
+    return getRedisClient()!;
   }
 
   async get(key: string): Promise<CachedAnalysis | null> {

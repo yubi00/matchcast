@@ -9,7 +9,7 @@ import logger from '../utils/logger';
 import config from '../config';
 
 const cache: CacheProvider = config.redisUrl
-  ? new RedisCache(config.redisUrl)
+  ? new RedisCache()
   : new MemoryCache();
 
 // Tracks in-flight requests to prevent duplicate API + LLM calls for the same fixture

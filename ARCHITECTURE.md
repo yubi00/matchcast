@@ -346,11 +346,110 @@ docker compose up --build   # runs full stack on localhost:3000 (backend) + loca
 
 ---
 
-### Refresh Token Rotation
+### Refresh Token Rotation ✓ Implemented
 
-**Current limitation:** The refresh token is valid for 7 days and never invalidated after use. If an attacker extracts the refresh token cookie (e.g. via physical access or a compromised network), they can generate access tokens indefinitely for 7 days.
+**Problem:** Refresh tokens were stateless JWTs — verified by signature only, never stored server-side. If stolen, an attacker could mint new access tokens for the full 7-day validity window with no way to invalidate them.
 
-**Solution:** On each `/api/auth/refresh` call, invalidate the old refresh token and issue a new one (stored server-side in Redis or a database). If an old refresh token is used (replay attack), the entire token family is revoked. This is the industry-standard approach used by Auth0, Supabase, and others.
+**Solution:** Token rotation backed by Redis. Every refresh token is now single-use. On each `/api/auth/refresh` the old token is invalidated and a new one issued. Tokens are tracked in Redis by `tokenId` and grouped into sessions by `familyId`. This is the Auth0 / Supabase pattern.
+
+---
+
+**Redis data model:**
+```
+token:{tokenId}   → { familyId, used: boolean }   TTL: 7d   (STRING)
+family:{familyId} → Set<tokenId>                   TTL: 7d   (SET)
+```
+`token:*` handles per-request validation. `family:*` enables full session revocation in one operation — no key scan needed.
+
+---
+
+**Initial login (`POST /api/auth/token`):**
+```
+client
+  │
+  ├── POST /api/auth/token ──────────────────────────────────► server
+  │                                                              │
+  │                                                              │ generate familyId (uuid) — new session
+  │                                                              │ generate tokenId  (uuid) — first token
+  │                                                              │
+  │                                                              │ Redis:
+  │                                                              │   SET  token:{tokenId}   { familyId, used: false }  TTL 7d
+  │                                                              │   SADD family:{familyId} tokenId                    TTL 7d
+  │                                                              │
+  │                                                              │ sign JWT { tokenId, familyId }
+  │◄── accessToken (15min) ──────────────────────────────────── │
+  │◄── Set-Cookie: refreshToken=<JWT> (httpOnly, 7d) ────────── │
+```
+
+---
+
+**Happy path — token rotation (`POST /api/auth/refresh`):**
+```
+client
+  │
+  ├── POST /api/auth/refresh (cookie) ──────────────────────► server
+  │                                                              │
+  │                                                              │ verify JWT signature ✓
+  │                                                              │ extract { tokenId, familyId }
+  │                                                              │
+  │                                                              │ Redis GET token:{tokenId}
+  │                                                              │   → { familyId, used: false } ✓
+  │                                                              │
+  │                                                              │ mark token:{tokenId} used: true
+  │                                                              │ generate newTokenId
+  │                                                              │ SET  token:{newTokenId} { familyId, used: false }
+  │                                                              │ SADD family:{familyId} newTokenId
+  │                                                              │
+  │◄── new accessToken (15min) ──────────────────────────────── │
+  │◄── Set-Cookie: refreshToken=<new JWT> (httpOnly, 7d) ─────── │
+```
+Same `familyId` — same session. Token chain grows by one entry per rotation.
+
+---
+
+**Replay attack — stolen token reused:**
+```
+attacker
+  │
+  ├── POST /api/auth/refresh (old stolen cookie) ────────────► server
+  │                                                              │
+  │                                                              │ verify JWT signature ✓
+  │                                                              │ extract { tokenId, familyId }
+  │                                                              │
+  │                                                              │ Redis GET token:{tokenId}
+  │                                                              │   → { familyId, used: true } ✗
+  │                                                              │
+  │                                                              │ REPLAY DETECTED
+  │                                                              │ SMEMBERS family:{familyId} → [id1, id2, id3 ...]
+  │                                                              │ DEL token:{id1}, token:{id2}, token:{id3} ...
+  │                                                              │ DEL family:{familyId}
+  │                                                              │ (legitimate user also forced to re-login)
+  │                                                              │
+  │◄── 401 Session invalidated, please log in again ─────────── │
+```
+The server cannot distinguish attacker from legitimate user — both hold tokens from the same family. Revoking the entire family is the only safe response. The legitimate user re-logs in; the attacker's token chain is dead.
+
+---
+
+**What the 7-day TTL means after rotation:**
+Before rotation, 7 days was the attacker's window — they could silently mint access tokens until expiry. After rotation, 7 days is purely a UX decision — how long before the user must log in again from scratch. The attack window shrinks from 7 days to the time between token theft and first use (minutes or seconds in practice).
+
+---
+
+**Session reuse on page load:**
+`initAuth()` tries `/api/auth/refresh` first on every page load. If the cookie is valid, the existing session (family) is reused — no new family is created. Only if refresh fails (no cookie, expired, or revoked) does it fall back to `/api/auth/token` to start a fresh session.
+
+```
+Page load
+  │
+  ├── try POST /api/auth/refresh
+  │     ├── success → reuse existing family, get new access token
+  │     └── fail   → POST /api/auth/token → new family, new session
+```
+
+---
+
+**Graceful degradation:** If Redis is unavailable, token storage fails silently — the app remains functional but rotation is skipped. Acceptable for an anonymous session model with no user accounts.
 
 ---
 
