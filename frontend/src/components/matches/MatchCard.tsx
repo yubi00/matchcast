@@ -75,7 +75,7 @@ export function MatchCard({ match }: MatchCardProps) {
       {data && isExpanded && (
         <AnalysisPanel
           text={data.analysis}
-          audioBase64={data.audioBase64}
+          audioUrl={data.audioUrl}
           onAudioEnded={() => setIsExpanded(false)}
         />
       )}
