@@ -11,7 +11,7 @@ const REFRESH_COOKIE = 'refreshToken';
 const cookieOptions = {
   httpOnly: true,
   secure: config.nodeEnv === 'production',
-  sameSite: 'strict' as const,
+  sameSite: (config.nodeEnv === 'production' ? 'none' : 'strict') as 'none' | 'strict',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
 };
 
