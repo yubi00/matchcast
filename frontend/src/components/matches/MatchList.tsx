@@ -1,6 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { fetchMatches } from '../../api/matchcast.api';
+import { shouldRetry } from '../../lib/apiClient';
 import { MatchCard } from './MatchCard';
 
 export function MatchList() {
@@ -12,6 +13,7 @@ export function MatchList() {
         lastPage.hasMore ? pages.length * 20 : undefined,
       initialPageParam: 0,
       staleTime: 5 * 60 * 1000,
+      retry: shouldRetry,
     });
 
   if (isLoading) {
