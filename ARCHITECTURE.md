@@ -28,7 +28,7 @@ Browser
                                                                   ├─► preprocessor (raw → signals)
                                                                   ├─► GPT-4o (signals → prose)
                                                                   ├─► ElevenLabs (prose → base64 MP3)
-                                                                  └─► MemoryCache (store result)
+                                                                  └─► RedisCache (store result)
 ```
 
 ---
@@ -72,7 +72,7 @@ GET /api/analysis/:fixtureId
           │
           ▼
 ┌─────────────────────┐
-│   Check MemoryCache  │
+│   Check RedisCache   │
 └─────────────────────┘
           │
      Cache hit?
@@ -120,7 +120,7 @@ result         ┌────┴────┐
                │    └──────────────────────────────────────────────┘
                │           │
                │           ▼
-               │    Store in MemoryCache
+               │    Store in RedisCache
                │    Delete from inFlight Map
                │           │
                └───────────┤
@@ -205,14 +205,19 @@ Request B ───────────────────────�
 
 **Trade-off acknowledged:** For a live season with new fixtures each week, this approach would not work. The production path would be an api-sports.io Pro subscription with webhook-based updates or a scheduled refresh job, with Redis as the cache layer.
 
-### MemoryCache: why in-process memory for MVP
+### Redis as cache provider
 
-Alternatives considered:
-- **Redis** — persistent, distributed, survives restarts. Overkill for MVP. Requires a separate service.
-- **SQLite** — persistent but adds a dependency and schema management.
-- **MemoryCache** — zero dependencies, zero latency, simple. Wipes on restart, but fixtures don't change — regenerating on restart is acceptable.
+`MemoryCache` was the initial implementation — zero dependencies, zero latency, simple. The limitation: it wipes on every process restart, so any fixture previously analysed needs to re-run the full GPT-4o + ElevenLabs pipeline after a Railway redeploy.
 
-The `CacheProvider` interface keeps the implementation swappable. Redis can replace `MemoryCache` without touching any other code.
+`RedisCache` replaces it as a single line swap in `analysisService.ts`. The `CacheProvider` interface (`get` / `set`) means no other code changes. Locally, Redis runs as a Docker service (`redis:7-alpine` with AOF persistence). In production, Railway provisions a Redis instance and injects `REDIS_URL` automatically.
+
+### Button state persistence problem and the /exists endpoint
+
+**Problem:** After a page refresh, the MatchCard button always rendered in the "not yet generated" state — even when the analysis was already cached in Redis. This is because the `requested` state variable in `MatchCard` resets to `false` on every render. React Query's client-side cache is also gone after a refresh. The button had no way to know the analysis existed without triggering a full fetch — which would kick off the pipeline for every fixture on page load.
+
+**LocalStorage was considered** but rejected: it stores state in the browser only, diverges from the actual cache (a Redis flush or new deployment would leave buttons showing "generated" for analyses that no longer exist), and doesn't work across devices.
+
+**Solution:** A dedicated `GET /api/analysis/:fixtureId/exists` endpoint performs a single cache lookup (`cache.get(key) !== null`) and returns `{ exists: boolean }` — no pipeline triggered. `MatchCard` calls this via a `useAnalysisExists` hook on mount. If `exists: true`, `useAnalysis` is enabled immediately and the button renders in the correct "already generated" state. The button state is always derived from the actual source of truth (Redis), so it stays accurate regardless of browser, device, or cache resets.
 
 ### Railway over serverless for backend
 

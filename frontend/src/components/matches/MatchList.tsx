@@ -89,7 +89,7 @@ export function MatchList() {
             }}
           >
             {isFetchingNextPage
-              ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Loading...</>
+              ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
               : 'Load more matches'}
           </button>
         </div>
