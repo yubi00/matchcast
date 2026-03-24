@@ -38,11 +38,14 @@ AI-powered audio match analysis for the Premier League. Pick any finished EPL 20
 
 ```bash
 cp backend/.env.example backend/.env   # fill in your keys
+cp .env.example .env                   # set VITE_API_BASE_URL for the frontend build
 docker compose up --build
 ```
 
 - Frontend: http://localhost:80
 - Backend: http://localhost:3000
+
+The root `.env` is used by Docker Compose at build time to pass `VITE_API_BASE_URL` into the frontend image. For local Docker runs this should be `http://localhost:3000`. If running in a remote environment (e.g. GitHub Codespaces), set it to the forwarded backend URL.
 
 > **Note:** When running with Docker, set `CLIENT_ORIGIN=http://localhost:80` in `backend/.env` so the backend allows CORS requests from the containerised frontend. For production (Railway + Vercel), `CLIENT_ORIGIN` should remain `https://matchcast.vercel.app`.
 
@@ -120,7 +123,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for a detailed breakdown of every design 
 
 ## Environment Variables
 
-### Backend (`.env`)
+### Backend (`backend/.env`)
 
 ```
 OPENAI_API_KEY=
@@ -128,13 +131,22 @@ API_FOOTBALL_KEY=
 API_FOOTBALL_BASE_URL=https://v3.football.api-sports.io
 ELEVENLABS_API_KEY=
 ELEVENLABS_VOICE_ID=
+UPLOADTHING_TOKEN=
 JWT_ACCESS_SECRET=
 JWT_REFRESH_SECRET=
 CLIENT_ORIGIN=http://localhost:5173
 NODE_ENV=development
 ```
 
-### Frontend (`.env`)
+### Root (`.env`) — Docker only
+
+```
+VITE_API_BASE_URL=http://localhost:3000
+```
+
+Used by Docker Compose at build time to inject the backend URL into the frontend image. Not needed when running without Docker (set `VITE_API_BASE_URL` in `frontend/.env` instead).
+
+### Frontend (`frontend/.env`) — without Docker
 
 ```
 VITE_API_BASE_URL=http://localhost:3000
