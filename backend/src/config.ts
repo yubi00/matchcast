@@ -9,6 +9,7 @@ function requireEnv(key: string): string {
 const config = {
   port: parseInt(process.env['PORT'] ?? '3000'),
   nodeEnv: process.env['NODE_ENV'] ?? 'development',
+  redisUrl: process.env['REDIS_URL'],
   openAiApiKey: requireEnv('OPENAI_API_KEY'),
   apiFootballKey: requireEnv('API_FOOTBALL_KEY'),
   apiFootballBaseUrl: requireEnv('API_FOOTBALL_BASE_URL'),
