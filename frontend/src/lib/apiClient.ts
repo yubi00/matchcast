@@ -34,4 +34,12 @@ apiClient.interceptors.response.use(
   }
 );
 
+// ── TanStack Query retry policy — no retries on 4xx, up to 3 on 5xx/network ──
+export function shouldRetry(failureCount: number, error: unknown): boolean {
+  if (axios.isAxiosError(error) && error.response?.status && error.response.status < 500) {
+    return false;
+  }
+  return failureCount < 3;
+}
+
 export default apiClient;

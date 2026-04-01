@@ -3,6 +3,11 @@ const BASE_URL = `${import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
 let accessToken: string | null = null;
 
 export async function initAuth(): Promise<void> {
+  const refreshed = await fetchRefreshToken();
+  if (refreshed) {
+    accessToken = refreshed;
+    return;
+  }
   accessToken = await fetchNewToken();
 }
 

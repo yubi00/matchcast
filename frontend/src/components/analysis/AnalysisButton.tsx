@@ -26,7 +26,17 @@ export function AnalysisButton({ onClick, isLoading, isGenerated, isExpanded }: 
         transition: 'background 0.2s, opacity 0.2s',
       }}
     >
-      {isLoading ? 'Generating...' : isExpanded ? '▲ MatchCast' : '▶ MatchCast'}
+      {isLoading ? (
+        <span style={{
+          display: 'inline-block',
+          width: '12px',
+          height: '12px',
+          border: '2px solid currentColor',
+          borderTopColor: 'transparent',
+          borderRadius: '50%',
+          animation: 'spin 0.7s linear infinite',
+        }} />
+      ) : isExpanded ? '▲ MatchCast' : '▶ MatchCast'}
     </button>
   );
 }

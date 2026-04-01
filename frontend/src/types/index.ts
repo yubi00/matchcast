@@ -10,6 +10,7 @@ export interface Match {
     fulltime: { home: number | null; away: number | null };
   };
   status: string;
+  hasAnalysis: boolean;
 }
 
 export interface MatchesResponse {

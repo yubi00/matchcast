@@ -6,13 +6,14 @@ import pinoHttp from 'pino-http';
 import logger from './utils/logger';
 import config from './config';
 import { errorMiddleware } from './middleware/errorMiddleware';
-import { globalLimiter, analysisLimiter } from './middleware/rateLimiter';
+import { globalLimiter } from './middleware/rateLimiter';
 import { authMiddleware } from './middleware/authMiddleware';
 import matchesRouter from './routes/matches.router';
 import analysisRouter from './routes/analysis.router';
 import authRouter from './routes/auth.router';
 
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(helmet());
 app.use(cors({ origin: config.clientOrigin, credentials: true }));
