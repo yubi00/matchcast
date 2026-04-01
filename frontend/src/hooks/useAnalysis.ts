@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchAnalysis } from '../api/matchcast.api';
+import { shouldRetry } from '../lib/apiClient';
 
 export function useAnalysis(fixtureId: number | null) {
   return useQuery({
@@ -7,6 +8,6 @@ export function useAnalysis(fixtureId: number | null) {
     queryFn: () => fetchAnalysis(fixtureId!),
     enabled: fixtureId !== null,
     staleTime: Infinity, // analysis never changes for a finished match
-    retry: 1,
+    retry: shouldRetry,
   });
 }

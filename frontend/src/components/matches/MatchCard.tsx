@@ -59,7 +59,7 @@ export function MatchCard({ match }: MatchCardProps) {
         <AnalysisButton
           onClick={handleButtonClick}
           isLoading={isFetching}
-          isGenerated={!!data}
+          isGenerated={!!data || match.hasAnalysis}
           isExpanded={isExpanded}
         />
       </div>

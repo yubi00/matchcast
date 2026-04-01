@@ -1,15 +1,23 @@
 import { MemoryCache } from '../cache/memoryCache';
-import type { CachedAnalysis } from '../cache/cacheProvider';
+import { RedisCache } from '../cache/redisCache';
+import type { CacheProvider, CachedAnalysis } from '../cache/cacheProvider';
 import { fetchFixtureDetail } from './footballApi.service';
 import { preprocess } from './preprocessor';
 import { generateAnalysis } from './analysisGenerator';
 import { generateAudio } from './ttsService';
 import logger from '../utils/logger';
+import config from '../config';
 
-const cache = new MemoryCache();
+const cache: CacheProvider = config.redisUrl
+  ? new RedisCache()
+  : new MemoryCache();
 
 // Tracks in-flight requests to prevent duplicate API + LLM calls for the same fixture
 const inFlight = new Map<string, Promise<CachedAnalysis>>();
+
+export async function analysisExists(fixtureId: number): Promise<boolean> {
+  return (await cache.get(String(fixtureId))) !== null;
+}
 
 export async function getAnalysis(fixtureId: number): Promise<CachedAnalysis & { cached: boolean }> {
   const key = String(fixtureId);

@@ -4,7 +4,7 @@ import { getAccessToken, refreshAuth } from './auth';
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
 
 const apiClient = axios.create({
-  baseURL: BASE_URL,
+  baseURL: `${BASE_URL}/api/v1`,
   withCredentials: true,
 });
 
@@ -33,5 +33,13 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// ── TanStack Query retry policy — no retries on 4xx, up to 3 on 5xx/network ──
+export function shouldRetry(failureCount: number, error: unknown): boolean {
+  if (axios.isAxiosError(error) && error.response?.status && error.response.status < 500) {
+    return false;
+  }
+  return failureCount < 3;
+}
 
 export default apiClient;

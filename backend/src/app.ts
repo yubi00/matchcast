@@ -6,13 +6,14 @@ import pinoHttp from 'pino-http';
 import logger from './utils/logger';
 import config from './config';
 import { errorMiddleware } from './middleware/errorMiddleware';
-import { globalLimiter, analysisLimiter } from './middleware/rateLimiter';
+import { globalLimiter } from './middleware/rateLimiter';
 import { authMiddleware } from './middleware/authMiddleware';
 import matchesRouter from './routes/matches.router';
 import analysisRouter from './routes/analysis.router';
 import authRouter from './routes/auth.router';
 
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(helmet());
 app.use(cors({ origin: config.clientOrigin, credentials: true }));
@@ -21,13 +22,13 @@ app.use(cookieParser());
 app.use(pinoHttp({ logger }));
 app.use(globalLimiter);
 
-app.get('/api/health', (_req: Request, res: Response) => {
+app.get('/api/v1/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok' });
 });
 
-app.use('/api/auth', authRouter);
-app.use('/api/matches', authMiddleware, matchesRouter);
-app.use('/api/analysis', analysisLimiter, authMiddleware, analysisRouter);
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/matches', authMiddleware, matchesRouter);
+app.use('/api/v1/analysis', authMiddleware, analysisRouter);
 
 app.use(errorMiddleware);
 
