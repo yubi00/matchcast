@@ -22,13 +22,13 @@ app.use(cookieParser());
 app.use(pinoHttp({ logger }));
 app.use(globalLimiter);
 
-app.get('/api/health', (_req: Request, res: Response) => {
+app.get('/api/v1/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok' });
 });
 
-app.use('/api/auth', authRouter);
-app.use('/api/matches', authMiddleware, matchesRouter);
-app.use('/api/analysis', authMiddleware, analysisRouter);
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/matches', authMiddleware, matchesRouter);
+app.use('/api/v1/analysis', authMiddleware, analysisRouter);
 
 app.use(errorMiddleware);
 
