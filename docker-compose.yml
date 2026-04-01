@@ -33,7 +33,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_BASE_URL=https://ideal-space-cod-qv6xw457657346g4-3000.app.github.dev
+        - VITE_API_BASE_URL
     ports:
       - "80:80"
     depends_on:

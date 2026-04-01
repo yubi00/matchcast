@@ -4,11 +4,11 @@ import { AudioPlayer } from './AudioPlayer';
 
 interface AnalysisPanelProps {
   text: string;
-  audioBase64: string | null;
+  audioUrl: string | null;
   onAudioEnded?: () => void;
 }
 
-export function AnalysisPanel({ text, audioBase64, onAudioEnded }: AnalysisPanelProps) {
+export function AnalysisPanel({ text, audioUrl, onAudioEnded }: AnalysisPanelProps) {
   const [showTranscript, setShowTranscript] = useState(false);
 
   return (
@@ -19,7 +19,7 @@ export function AnalysisPanel({ text, audioBase64, onAudioEnded }: AnalysisPanel
       borderRadius: 'var(--radius)',
       borderLeft: '3px solid var(--accent)',
     }}>
-      {audioBase64 && <AudioPlayer audioBase64={audioBase64} onEnded={onAudioEnded} />}
+      {audioUrl && <AudioPlayer audioUrl={audioUrl} onEnded={onAudioEnded} />}
 
       <button
         onClick={() => setShowTranscript(prev => !prev)}

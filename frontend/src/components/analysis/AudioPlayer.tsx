@@ -1,26 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 interface AudioPlayerProps {
-  audioBase64: string;
+  audioUrl: string;
   onEnded?: () => void;
 }
 
-export function AudioPlayer({ audioBase64, onEnded }: AudioPlayerProps) {
+export function AudioPlayer({ audioUrl, onEnded }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    const bytes = atob(audioBase64);
-    const buffer = new Uint8Array(bytes.length);
-    for (let i = 0; i < bytes.length; i++) buffer[i] = bytes.charCodeAt(i);
-    const url = URL.createObjectURL(new Blob([buffer], { type: 'audio/mpeg' }));
-    setAudioUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [audioBase64]);
 
   const togglePlay = () => {
     const audio = audioRef.current;
@@ -50,7 +39,7 @@ export function AudioPlayer({ audioBase64, onEnded }: AudioPlayerProps) {
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
       <audio
         ref={audioRef}
-        src={audioUrl ?? undefined}
+        src={audioUrl}
         onLoadedMetadata={onLoadedMetadata}
         onTimeUpdate={onTimeUpdate}
         onPlay={onPlay}

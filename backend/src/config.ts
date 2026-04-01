@@ -18,6 +18,7 @@ const config = {
   jwtAccessSecret: requireEnv('JWT_ACCESS_SECRET'),
   jwtRefreshSecret: requireEnv('JWT_REFRESH_SECRET'),
   clientOrigin: requireEnv('CLIENT_ORIGIN'),
+  uploadThingToken: requireEnv('UPLOADTHING_TOKEN'),
 } as const;
 
 export default config;

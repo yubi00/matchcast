@@ -338,11 +338,35 @@ docker compose up --build   # runs full stack on localhost:3000 (backend) + loca
 
 ---
 
-### S3 + Signed URLs — Audio Storage
+### UploadThing — Cloud Audio Storage ✓ Implemented
 
-**Current limitation:** Audio is returned as a base64-encoded string inside the JSON response. Base64 adds ~33% overhead to payload size. For a 70-second audio clip, that's significant over mobile connections. All audio is also regenerated if the cache is lost.
+**Problem:** Audio was returned as a base64-encoded string inside the JSON response. Base64 adds ~33% overhead to payload size. For a ~70s audio clip that's ~1.2MB in JSON — a significant hit on mobile connections. The backend was also in the hot path for every audio playback, and storing large base64 blobs in the cache layer was expensive in terms of memory.
 
-**Solution:** Store audio as binary `.mp3` in S3 (or equivalent object storage). Return a short-lived signed URL in the API response. The frontend fetches the audio directly from S3 — bypassing the backend entirely for the binary data. This also decouples audio storage from the cache layer.
+**Solution:** After ElevenLabs generates the audio buffer, it is uploaded server-side to UploadThing (`UTApi.uploadFiles`). The permanent CDN URL is stored in the cache (`audioUrl`) instead of the base64 string. The frontend uses this URL directly as the `<audio>` `src` — the backend is completely out of the audio delivery path after generation.
+
+**Why UploadThing for now:**
+MatchCast is at MVP stage — the priority is shipping a working product without operational overhead. Raw S3 requires provisioning a bucket, configuring IAM roles, managing CORS policies, and handling signed URL expiry. UploadThing abstracts all of that behind a single token and a one-line upload call. For a project at this stage, that's the right trade-off.
+
+**Why not raw S3 yet:**
+- No bucket policies, IAM roles, or signed URL expiry to manage
+- Permanent URLs — no need to regenerate on every cache read
+- Built-in CDN — audio is served from edge locations close to the user
+- Server-side upload API (`UTApi`) works cleanly in a Node.js backend with no extra infrastructure
+
+**Migration path to S3 when needed:** If the project scales to a point where UploadThing's pricing or control becomes a constraint, migrating to S3 is straightforward — swap `UTApi.uploadFiles` in `ttsService.ts` for an S3 `PutObjectCommand`, store the S3 key in the cache instead of the URL, and sign the key on every cache read. Everything else stays the same.
+
+**Flow:**
+```
+ElevenLabs → audio buffer → UploadThing (upload once)
+                                    ↓
+                              permanent URL
+                                    ↓
+                         stored in cache (tiny string)
+                                    ↓
+                    frontend fetches audio directly from CDN
+```
+
+**Result:** API response payload drops from ~1.2MB to ~2KB for audio. Subsequent requests for the same fixture return the URL instantly from cache — audio loads directly from CDN with no backend involvement.
 
 ---
 

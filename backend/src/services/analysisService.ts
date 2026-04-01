@@ -59,7 +59,7 @@ async function runPipeline(fixtureId: number): Promise<CachedAnalysis> {
   const llmMs = Date.now() - llmStart;
 
   const ttsStart = Date.now();
-  const audioBase64 = await generateAudio(analysis);
+  const audioUrl = await generateAudio(fixtureId, analysis);
   const ttsMs = Date.now() - ttsStart;
 
   const totalMs = Date.now() - pipelineStart;
@@ -72,7 +72,7 @@ async function runPipeline(fixtureId: number): Promise<CachedAnalysis> {
     awayTeam: signals.awayTeam,
     score: signals.score,
     analysis,
-    audioBase64,
+    audioUrl,
     generatedAt: new Date().toISOString(),
   };
 }
